@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+
+    <preference for="Funarbe\SupermercadoEscolaApi\Api\SeparacaoProdutosManagementInterface"
+                type="Funarbe\SupermercadoEscolaApi\Model\SeparacaoProdutosManagement"/>
+
+    <preference for="Funarbe\SupermercadoEscolaApi\Api\DetalhesProdutosManagementInterface"
+                type="Funarbe\SupermercadoEscolaApi\Model\DetalhesProdutosManagement"/>
+
+    <preference for="Funarbe\SupermercadoEscolaApi\Api\DetalhesProdutosImagemManagementInterface"
+                type="Funarbe\SupermercadoEscolaApi\Model\DetalhesProdutosImagemManagement"/>
+
+    <preference for="Funarbe\SupermercadoEscolaApi\Api\BuscarCategoriasManagementInterface"
+                type="Funarbe\SupermercadoEscolaApi\Model\BuscarCategoriasManagement"/>
+
+</config>
