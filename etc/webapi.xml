@@ -1,33 +1,45 @@
 <?xml version="1.0"?>
-<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi:etc/webapi.xsd">
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi:etc/webapi.xsd">
 
     <route url="/V1/funarbe-supermercadoescolaapi/separacaoprodutos" method="GET">
-        <service class="Funarbe\SupermercadoEscolaApi\Api\SeparacaoProdutosManagementInterface" method="getSeparacaoProdutos"/>
+        <service class="Funarbe\SupermercadoEscolaApi\Api\SeparacaoProdutosManagementInterface"
+                 method="getSeparacaoProdutos"/>
         <resources>
             <resource ref="anonymous"/>
         </resources>
     </route>
 
     <route url="/V1/funarbe-supermercadoescolaapi/detalhesprodutos" method="GET">
-        <service class="Funarbe\SupermercadoEscolaApi\Api\DetalhesProdutosManagementInterface" method="getDetalhesProdutos"/>
+        <service class="Funarbe\SupermercadoEscolaApi\Api\DetalhesProdutosManagementInterface"
+                 method="getDetalhesProdutos"/>
         <resources>
             <resource ref="anonymous"/>
         </resources>
     </route>
 
     <route url="/V1/funarbe-supermercadoescolaapi/detalhesprodutosimagem" method="GET">
-        <service class="Funarbe\SupermercadoEscolaApi\Api\DetalhesProdutosImagemManagementInterface" method="getDetalhesProdutosImagem"/>
+        <service class="Funarbe\SupermercadoEscolaApi\Api\DetalhesProdutosImagemManagementInterface"
+                 method="getDetalhesProdutosImagem"/>
         <resources>
             <resource ref="anonymous"/>
         </resources>
     </route>
 
     <route url="/V1/funarbe-supermercadoescolaapi/buscarcategorias" method="GET">
-        <service class="Funarbe\SupermercadoEscolaApi\Api\BuscarCategoriasManagementInterface" method="getBuscarCategorias"/>
+        <service class="Funarbe\SupermercadoEscolaApi\Api\BuscarCategoriasManagementInterface"
+                 method="getBuscarCategorias"/>
         <resources>
             <resource ref="anonymous"/>
         </resources>
     </route>
 
+    <route url="/V1/funarbe-supermercadoescolaapi/excluir-item-compra" method="POST">
+        <service class="Funarbe\SupermercadoEscolaApi\Api\ExcluirItemCompraManagementInterface"
+                 method="getExcluirItemCompra"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
 
 </routes>
