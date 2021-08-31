@@ -15,8 +15,7 @@ use Magento\Framework\App\ObjectManager;
 class DetalhesProdutosManagement implements DetalhesProdutosManagementInterface
 {
     /**
-     * {}
-     * @param $productId ;
+     * @param $productId;
      */
     public function getDetalhesProdutos($productId)
     {
@@ -32,11 +31,14 @@ class DetalhesProdutosManagement implements DetalhesProdutosManagementInterface
                     P.value AS nome_produto,
                     C.value AS nome_categoria,
                     V.qty_ordered AS qty_ordered,
-                    V.product_options->>'$.options[0].value' AS observacao
+                    JSON_EXTRACT(V.product_options, '$.options[0].value') AS observacao
                 FROM sales_order_item V
-                INNER JOIN catalog_category_product PC ON V.product_id = PC.product_id
-                INNER JOIN catalog_product_entity_varchar P ON P.entity_id = PC.product_id AND P.attribute_id = 73 AND P.store_id = 0
-                INNER JOIN catalog_category_entity_varchar C ON C.entity_id = PC.category_id
+                INNER JOIN catalog_category_product PC ON
+                    V.product_id = PC.product_id
+                INNER JOIN catalog_product_entity_varchar P ON
+                    P.entity_id = PC.product_id AND P.attribute_id = 73 AND P.store_id = 0
+                INNER JOIN catalog_category_entity_varchar C ON
+                    C.entity_id = PC.category_id
                 INNER JOIN sales_order SO
                 WHERE PC.position = 0 AND C.attribute_id = (
                 SELECT

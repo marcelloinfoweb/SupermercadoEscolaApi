@@ -43,13 +43,16 @@ class SeparacaoProdutosManagement implements SeparacaoProdutosManagementInterfac
                      C.value AS nome_categoria,
                      V.qty_ordered AS qty_ordered,
                      SO.status,
-                     V.product_options->>'$.options[0].value' AS observacao,
+                     JSON_EXTRACT(V.product_options, '$.options[0].value') AS observacao,
                      SO.caso_produto_nao_encontrado
                     FROM $sales_order_item V
                     INNER JOIN $catalog_category_product PC ON V.product_id = PC.product_id
-                    INNER JOIN $catalog_product_entity_varchar P ON P.entity_id = PC.product_id AND P.attribute_id = 73 AND P.store_id = 0
-                    INNER JOIN $catalog_category_entity_varchar C ON C.entity_id = PC.category_id
-                    INNER JOIN $sales_order SO ON SO.entity_id = $order_Id
+                    INNER JOIN $catalog_product_entity_varchar P ON
+                        P.entity_id = PC.product_id AND P.attribute_id = 73 AND P.store_id = 0
+                    INNER JOIN $catalog_category_entity_varchar C ON
+                        C.entity_id = PC.category_id
+                    INNER JOIN $sales_order SO ON
+                        SO.entity_id = $order_Id
                     WHERE PC.position = 0 AND C.attribute_id = (
                     SELECT
                      attribute_id

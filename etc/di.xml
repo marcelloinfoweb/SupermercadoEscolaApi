@@ -14,7 +14,10 @@
     <preference for="Funarbe\SupermercadoEscolaApi\Api\BuscarCategoriasManagementInterface"
                 type="Funarbe\SupermercadoEscolaApi\Model\BuscarCategoriasManagement"/>
 
-    <preference for="Funarbe\SupermercadoEscolaApi\Api\ExcluirItemCompraManagementInterface"
+    <preference for="Funarbe\SupermercadoEscolaApi\Api\AdicionarItemCompraManagementInterface"
                 type="Funarbe\SupermercadoEscolaApi\Model\ExcluirItemCompraManagement"/>
+
+    <preference for="Funarbe\SupermercadoEscolaApi\Api\AdicionarItemCompraManagementInterface"
+                type="Funarbe\SupermercadoEscolaApi\Model\AdicionarItemCompraManagement"/>
 
 </config>

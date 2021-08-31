@@ -2,72 +2,64 @@
 
 namespace Funarbe\SupermercadoEscolaApi\Model;
 
-use Exception;
-use Funarbe\SupermercadoEscolaApi\Api\ExcluirItemCompraManagementInterface;
-use Magento\Framework\Api\FilterBuilder;
-use Magento\Framework\Api\Search\FilterGroupBuilder;
-use Magento\Framework\Api\SearchCriteriaBuilder;
-use Magento\Sales\Api\OrderItemRepositoryInterface;
-use Psr\Log\LoggerInterface;
+use Funarbe\SupermercadoEscolaApi\Api\AdicionarItemCompraManagementInterface;
 
-class ExcluirItemCompraManagement implements ExcluirItemCompraManagementInterface
+class ExcluirItemCompraManagement implements AdicionarItemCompraManagementInterface
 {
-    /**
-     * @var \Magento\Framework\Api\SearchCriteriaBuilder
-     */
-    private SearchCriteriaBuilder $searchCriteriaBuilder;
-
-    /**
-     * @var \Magento\Framework\Api\Search\FilterGroupBuilder
-     */
-    private $filterGroupBuilder;
-
-    /**
-     * @var \Magento\Framework\Api\FilterBuilder
-     */
-    private $filterBuilder;
-
-    /**
-     * @var \Magento\Sales\Api\OrderItemRepositoryInterface
-     */
-    private OrderItemRepositoryInterface $orderItemRepository;
-
-    private $logger;
+    private \Psr\Log\LoggerInterface $logger;
+    private \Magento\Sales\Api\OrderRepositoryInterface $orderRepository;
 
     public function __construct(
-        OrderItemRepositoryInterface $orderItemRepository,
-        SearchCriteriaBuilder $searchCriteriaBuilder,
-        FilterBuilder $filterBuilder,
-        FilterGroupBuilder $filterGroupBuilder,
-        LoggerInterface $logger
+        \Psr\Log\LoggerInterface $logger,
+        \Magento\Sales\Api\OrderRepositoryInterface $orderRepository
     ) {
-        $this->orderItemRepository = $orderItemRepository;
-        $this->filterBuilder = $filterBuilder;
-        $this->filterGroupBuilder = $filterGroupBuilder;
-        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->logger = $logger;
+        $this->orderRepository = $orderRepository;
     }
 
-    public function getExcluirItemCompra($orderId, $itemId)
+    /**
+     * @param int $orderId
+     * @param int $itemId
+     * @throws \Exception
+     */
+    public function getExcluirItemCompra(int $orderId, int $itemId)
     {
-        $searchCriteria = $this->searchCriteriaBuilder
-            ->addFilter('order_id', $orderId)
-            ->addFilter('product_id', $itemId)->create();
-        $orderItems = $this->orderItemRepository->getList($searchCriteria);
+        $_order = $this->orderRepository->get($orderId);
+        $items = $_order->getAllItems();
 
-        if ($orderItems->getTotalCount() > 0) {
-            $orderItemsData = $orderItems->getData();
-            foreach ($orderItemsData as $orderItem) {
-                $itemId = $orderItem['item_id'];
+        foreach ($items as $item) {
+            $base_grand_total = $_order->getBaseGrandTotal();
+            $base_subtotal = $_order->getBaseSubtotal();
+            $base_tva = $_order->getBaseTaxAmount();
+            $grand_total = $_order->getGrandTotal();
+            $subtotal = $_order->getSubtotal();
+            $tva = $_order->getTaxAmount();
+            $base_subtotal_incl_tax = $_order->getBaseSubtotalInclTax();
+            $subtotal_incl_tax = $_order->getSubtotalInclTax();
+            $total_item_count = $_order->getTotalItemCount();
+
+            if ($item->getProductId() == $itemId) {
+                $item_price = $item->getPrice();
+                $item_tva = $item->getTaxAmount();
                 try {
-                    $this->orderItemRepository->deleteById($itemId);
                     $this->logger->info("[ INFO ] - Item $itemId da compra $orderId foi deletado com sucesso.");
-                } catch (Exception $exception) {
+                    $item->delete();
+                } catch (\Exception $exception) {
                     $this->logger->error(
                         "[ ERROR ] - Item $itemId da compra $orderId não foi deletado",
                         ['exception' => $exception]
                     );
                 }
+                $_order->setBaseGrandTotal($base_grand_total - $item_price - $item_tva);
+                $_order->setBaseSubtotal($base_subtotal - $item_price);
+                $_order->setBaseTaxAmount($base_tva - $item_tva);
+                $_order->setGrandTotal($grand_total - $item_price - $item_tva);
+                $_order->setSubtotal($subtotal - $item_price);
+                $_order->setTaxAmount($tva - $item_tva);
+                $_order->setBaseSubtotalInclTax($base_subtotal_incl_tax - $item_price);
+                $_order->setSubtotalInclTax($subtotal_incl_tax - $item_price);
+                $_order->setTotalItemCount(count($items) - 1);
+                $_order->save();
             }
         }
     }
