@@ -73,6 +73,7 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
      * @param int $sku
      * @param float $weight
      * @param int $itemId
+     * @param string $substituir
      * @return bool|\Magento\Framework\Message\ManagerInterface
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
@@ -82,8 +83,10 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
         float $price,
         int $sku,
         float $weight,
-        int $itemId
+        int $itemId,
+        string $substituir
     ) {
+
         $order = $this->orderRepository->get($order_id);
         $product = $this->productRepository->get($sku);
         $quote = $this->quoteRepository->get($order->getQuoteId());
@@ -137,9 +140,10 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
             $this->orderRepository->save($order);
             /* Update relavant order totals End */
 
-            /* DELETAR PRODUTO */
-            $this->excluirItemCompraManagement->getExcluirItemCompra($order_id, $itemId);
-            /* DELETAR PRODUTO */
+            if ($substituir === 'Sim') {
+                /* DELETAR PRODUTO */
+                $this->excluirItemCompraManagement->getExcluirItemCompra($order_id, $itemId);
+            }
 
         } catch (\Exception $e) {
             return $this->messageManager->addError($e->getMessage());
