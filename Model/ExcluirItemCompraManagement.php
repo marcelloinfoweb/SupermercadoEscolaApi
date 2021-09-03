@@ -2,16 +2,28 @@
 
 namespace Funarbe\SupermercadoEscolaApi\Model;
 
-use Funarbe\SupermercadoEscolaApi\Api\AdicionarItemCompraManagementInterface;
+use Funarbe\SupermercadoEscolaApi\Api\ExcluirItemCompraManagementInterface;
+use Magento\Sales\Api\OrderRepositoryInterface;
+use Psr\Log\LoggerInterface;
 
-class ExcluirItemCompraManagement implements AdicionarItemCompraManagementInterface
+class ExcluirItemCompraManagement implements ExcluirItemCompraManagementInterface
 {
-    private \Psr\Log\LoggerInterface $logger;
-    private \Magento\Sales\Api\OrderRepositoryInterface $orderRepository;
+    /**
+     * @var \Psr\Log\LoggerInterface
+     */
+    private $logger;
+    /**
+     * @var \Magento\Sales\Api\OrderRepositoryInterface
+     */
+    private $orderRepository;
 
+    /**
+     * @param \Psr\Log\LoggerInterface $logger
+     * @param \Magento\Sales\Api\OrderRepositoryInterface $orderRepository
+     */
     public function __construct(
-        \Psr\Log\LoggerInterface $logger,
-        \Magento\Sales\Api\OrderRepositoryInterface $orderRepository
+        LoggerInterface $logger,
+        OrderRepositoryInterface $orderRepository
     ) {
         $this->logger = $logger;
         $this->orderRepository = $orderRepository;

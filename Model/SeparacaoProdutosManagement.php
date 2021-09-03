@@ -14,11 +14,14 @@ use Magento\Framework\App\ObjectManager;
 
 class SeparacaoProdutosManagement implements SeparacaoProdutosManagementInterface
 {
+
     /**
-     * {@inheritdoc}
-     * @param $orderId ;
+     * @param int $orderId
+     * @return array|mixed|void
+     * @throws \Magento\Framework\Exception\InputException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    public function getSeparacaoProdutos($orderId)
+    public function getSeparacaoProdutos(int $orderId)
     {
         $objectManager = ObjectManager::getInstance();
         $resource = $objectManager->get('Magento\Framework\App\ResourceConnection');
@@ -43,6 +46,7 @@ class SeparacaoProdutosManagement implements SeparacaoProdutosManagementInterfac
                      C.value AS nome_categoria,
                      V.qty_ordered AS qty_ordered,
                      SO.status,
+                     V.sku,
                      JSON_EXTRACT(V.product_options, '$.options[0].value') AS observacao,
                      SO.caso_produto_nao_encontrado
                     FROM $sales_order_item V
@@ -58,7 +62,7 @@ class SeparacaoProdutosManagement implements SeparacaoProdutosManagementInterfac
                      attribute_id
                     FROM $eav_attribute
                     WHERE attribute_code = 'name' AND entity_type_id = 3) AND V.order_id = $order_Id
-                    GROUP BY P.entity_id, V.order_id, id_order_admin, nome_cliente_completo, id_produto, nome_produto, nome_categoria, qty_ordered, SO.status, observacao, SO.caso_produto_nao_encontrado";
+                    GROUP BY P.entity_id, V.order_id, id_order_admin, nome_cliente_completo, id_produto, nome_produto, nome_categoria, qty_ordered, SO.status, observacao, SO.caso_produto_nao_encontrado, V.sku";
 
             return $connection->fetchAll($sql);
         }

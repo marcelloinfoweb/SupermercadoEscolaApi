@@ -35,7 +35,7 @@
     </route>
 
     <route url="/V1/funarbe-supermercadoescolaapi/excluir-item-compra" method="POST">
-        <service class="Funarbe\SupermercadoEscolaApi\Api\AdicionarItemCompraManagementInterface"
+        <service class="Funarbe\SupermercadoEscolaApi\Api\ExcluirItemCompraManagementInterface"
                  method="getExcluirItemCompra"/>
         <resources>
             <resource ref="anonymous"/>
@@ -44,7 +44,7 @@
 
     <route url="/V1/funarbe-supermercadoescolaapi/adicionar-item-compra" method="POST">
         <service class="Funarbe\SupermercadoEscolaApi\Api\AdicionarItemCompraManagementInterface"
-                 method="setAdicionarItemCompra"/>
+                 method="getAdicionarItemCompra"/>
         <resources>
             <resource ref="anonymous"/>
         </resources>

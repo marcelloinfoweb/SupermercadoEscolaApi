@@ -15,7 +15,7 @@ use Magento\Framework\App\ObjectManager;
 class DetalhesProdutosManagement implements DetalhesProdutosManagementInterface
 {
     /**
-     * @param $productId;
+     * @param $productId ;
      */
     public function getDetalhesProdutos($productId)
     {
@@ -31,6 +31,8 @@ class DetalhesProdutosManagement implements DetalhesProdutosManagementInterface
                     P.value AS nome_produto,
                     C.value AS nome_categoria,
                     V.qty_ordered AS qty_ordered,
+                    V.sku,
+                    SO.caso_produto_nao_encontrado,
                     JSON_EXTRACT(V.product_options, '$.options[0].value') AS observacao
                 FROM sales_order_item V
                 INNER JOIN catalog_category_product PC ON
@@ -45,7 +47,7 @@ class DetalhesProdutosManagement implements DetalhesProdutosManagementInterface
                     attribute_id
                 FROM eav_attribute
                 WHERE attribute_code = 'name' AND entity_type_id = 3) AND V.product_id = $productId
-                GROUP BY P.entity_id, id_order_admin, nome_cliente_completo, id_produto, nome_produto, nome_categoria, qty_ordered, observacao";
+                GROUP BY P.entity_id, id_order_admin, nome_cliente_completo, id_produto, nome_produto, nome_categoria, qty_ordered, observacao, V.sku, SO.caso_produto_nao_encontrado";
 
         return $connection->fetchAll($sql);
     }
