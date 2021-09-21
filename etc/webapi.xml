@@ -50,4 +50,35 @@
         </resources>
     </route>
 
+    <route url="/V1/funarbe-supermercadoescolaapi/abertura-ponto" method="GET">
+        <service class="Funarbe\SupermercadoEscolaApi\Api\AberturaPontoManagementInterface" method="getAberturaPonto"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+
+    <route url="/V1/funarbe-supermercadoescolaapi/abertura-ponto-ufv" method="GET">
+        <service class="Funarbe\SupermercadoEscolaApi\Api\AberturaPontoManagementInterface" method="getAberturaPonto"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+
+    <route url="/V1/funarbe-supermercadoescolaapi/integrator-rm-cliente-fornecedor-limite-disponivel" method="GET">
+        <service class="Funarbe\SupermercadoEscolaApi\Api\IntegratorRmClienteFornecedorManagementInterface"
+                 method="getIntegratorRmClienteFornecedorLimiteDisponivel"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+
+    <route url="/V1/funarbe-supermercadoescolaapi/integrator-rm-cliente-fornecedor" method="GET">
+        <service class="Funarbe\SupermercadoEscolaApi\Api\IntegratorRmClienteFornecedorManagementInterface"
+                 method="getIntegratorRmClienteFornecedor"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+
 </routes>
+

@@ -20,4 +20,12 @@
     <preference for="Funarbe\SupermercadoEscolaApi\Api\AdicionarItemCompraManagementInterface"
                 type="Funarbe\SupermercadoEscolaApi\Model\AdicionarItemCompraManagement"/>
 
+    <preference for="Funarbe\SupermercadoEscolaApi\Api\AberturaPontoManagementInterface"
+                type="Funarbe\SupermercadoEscolaApi\Model\AberturaPontoUfvManagement"/>
+
+    <preference for="Funarbe\SupermercadoEscolaApi\Api\AberturaPontoUfvManagementInterface"
+                type="Funarbe\SupermercadoEscolaApi\Model\AberturaPontoUfvManagement"/>
+
+    <preference for="Funarbe\SupermercadoEscolaApi\Api\IntegratorRmClienteFornecedorManagementInterface"
+                type="Funarbe\SupermercadoEscolaApi\Model\IntegratorRmClienteFornecedorManagement"/>
 </config>
