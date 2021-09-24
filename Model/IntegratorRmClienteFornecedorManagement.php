@@ -46,7 +46,7 @@ class IntegratorRmClienteFornecedorManagement implements IntegratorRmClienteForn
     public function getIntegratorRmClienteFornecedor($cpf)
     {
         $URL = "https://integrator2.funarbe.org.br/rm/cliente-fornecedor/";
-        $URL .= "?expand=SALDOCARTAOALIMENTACAO&filter[CGCCFO]=$cpf";
+        $URL .= "?expand=SALDOCARTAOALIMENTACAO,FUNCIONARIOATIVO&filter[CGCCFO]=$cpf";
 
         return $this->curlIntegrator($URL);
     }
@@ -77,4 +77,3 @@ class IntegratorRmClienteFornecedorManagement implements IntegratorRmClienteForn
         return $resp['items'];
     }
 }
-
