@@ -18,6 +18,14 @@
         </resources>
     </route>
 
+    <route url="/V1/funarbe-supermercadoescolaapi/produtos" method="GET">
+        <service class="Funarbe\SupermercadoEscolaApi\Api\DetalhesProdutosManagementInterface"
+                 method="getProdutos"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+
     <route url="/V1/funarbe-supermercadoescolaapi/detalhesprodutosimagem" method="GET">
         <service class="Funarbe\SupermercadoEscolaApi\Api\DetalhesProdutosImagemManagementInterface"
                  method="getDetalhesProdutosImagem"/>

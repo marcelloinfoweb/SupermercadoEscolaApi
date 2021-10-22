@@ -16,4 +16,9 @@ interface DetalhesProdutosManagementInterface
      * @return mixed
      */
     public function getDetalhesProdutos(int $productId);
+
+    /**
+     * @return mixed
+     */
+    public function getProdutos();
 }

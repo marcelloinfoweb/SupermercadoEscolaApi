@@ -11,6 +11,7 @@ namespace Funarbe\SupermercadoEscolaApi\Model;
 
 use Funarbe\SupermercadoEscolaApi\Api\DetalhesProdutosManagementInterface;
 use Magento\Framework\App\ObjectManager;
+use Magento\Framework\App\ResourceConnection;
 
 class DetalhesProdutosManagement implements DetalhesProdutosManagementInterface
 {
@@ -20,7 +21,7 @@ class DetalhesProdutosManagement implements DetalhesProdutosManagementInterface
     public function getDetalhesProdutos($productId)
     {
         $objectManager = ObjectManager::getInstance();
-        $resource = $objectManager->get('Magento\Framework\App\ResourceConnection');
+        $resource = $objectManager->get(ResourceConnection::class);
         $connection = $resource->getConnection();
 
         $sql = "SELECT
@@ -51,4 +52,28 @@ class DetalhesProdutosManagement implements DetalhesProdutosManagementInterface
 
         return $connection->fetchAll($sql);
     }
+
+
+    /**
+     * @return mixed
+     */
+    public function getProdutos()
+    {
+        $objectManager = ObjectManager::getInstance();
+        $resource = $objectManager->get(ResourceConnection::class);
+        $connection = $resource->getConnection();
+
+        $sql = "SELECT
+                    cpev.value
+                FROM
+                    eav_attribute
+                JOIN catalog_product_entity_int cpei ON eav_attribute.attribute_id = cpei.attribute_id
+                JOIN catalog_product_entity_varchar cpev ON cpei.entity_id = cpev.entity_id
+                JOIN catalog_product_entity cpe ON cpei.entity_id = cpe.entity_id
+                WHERE
+                    cpev.attribute_id = 233;";
+
+        return $connection->fetchAll($sql);
+    }
+
 }
