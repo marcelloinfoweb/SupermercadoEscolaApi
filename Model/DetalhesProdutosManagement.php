@@ -33,6 +33,7 @@ class DetalhesProdutosManagement implements DetalhesProdutosManagementInterface
                     C.value AS nome_categoria,
                     V.qty_ordered AS qty_ordered,
                     V.sku,
+                    P2.value AS ean,
                     SO.caso_produto_nao_encontrado,
                     JSON_EXTRACT(V.product_options, '$.options[0].value') AS observacao
                 FROM sales_order_item V
@@ -40,6 +41,8 @@ class DetalhesProdutosManagement implements DetalhesProdutosManagementInterface
                     V.product_id = PC.product_id
                 INNER JOIN catalog_product_entity_varchar P ON
                     P.entity_id = PC.product_id AND P.attribute_id = 73 AND P.store_id = 0
+                INNER JOIN catalog_product_entity_varchar P2 ON
+                    P2.entity_id = PC.product_id AND P2.attribute_id = 237 AND P2.store_id = 0
                 INNER JOIN catalog_category_entity_varchar C ON
                     C.entity_id = PC.category_id
                 INNER JOIN sales_order SO
