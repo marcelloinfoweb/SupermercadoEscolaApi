@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Funarbe\SupermercadoEscolaApi\Model;
 
 use Funarbe\SupermercadoEscolaApi\Api\IntegratorRmClienteFornecedorManagementInterface;
+use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\HTTP\Client\Curl;
 
 class IntegratorRmClienteFornecedorManagement implements IntegratorRmClienteFornecedorManagementInterface
@@ -47,6 +48,17 @@ class IntegratorRmClienteFornecedorManagement implements IntegratorRmClienteForn
     {
         $URL = "https://integrator2.funarbe.org.br/rm/cliente-fornecedor/";
         $URL .= "?expand=SALDOCARTAOALIMENTACAO,FUNCIONARIOATIVO&filter[CGCCFO]=$cpf";
+
+        return $this->curlIntegrator($URL);
+    }
+
+    /**
+     * @throws \Safe\Exceptions\JsonException
+     */
+    public function getClassificacaoRmClienteFornecedor($cpf)
+    {
+        $URL = "https://integrator2.funarbe.org.br/rm/cliente-fornecedor/";
+        $URL .= "?filter[CGCCFO]=$cpf";
 
         return $this->curlIntegrator($URL);
     }

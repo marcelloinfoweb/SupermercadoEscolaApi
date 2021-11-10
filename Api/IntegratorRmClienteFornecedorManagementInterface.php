@@ -27,4 +27,11 @@ interface IntegratorRmClienteFornecedorManagementInterface
      * @return mixed
      */
     public function getIntegratorRmClienteFornecedor(string $cpf);
+
+    /**
+     * @param string $cpf
+     * @return mixed
+     */
+    public function getClassificacaoRmClienteFornecedor(string $cpf);
+
 }
