@@ -10,10 +10,10 @@ namespace Funarbe\SupermercadoEscolaApi\Api;
 interface VerificaProdutoSemImagemManagementInterface
 {
     /**
-     * @param string $productId
+     * @param string $sku
      * @return mixed
      */
-    public function getProdutoSemImagem(string $productId);
+    public function getProdutoSemImagem(string $sku);
 
 }
 
