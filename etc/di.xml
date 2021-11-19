@@ -26,10 +26,9 @@
     <preference for="Funarbe\SupermercadoEscolaApi\Api\AberturaPontoUfvManagementInterface"
                 type="Funarbe\SupermercadoEscolaApi\Model\AberturaPontoUfvManagement"/>
 
-    <preference for="Funarbe\SupermercadoEscolaApi\Api\VerificaProdutoSemImagemManagementInterface"
-                type="Funarbe\SupermercadoEscolaApi\Model\VerificaProdutoSemImagemManagement"/>
+    <preference for="Funarbe\SupermercadoEscolaApi\Api\IntegratorRmClienteFornecedorManagementInterface"
+                type="Funarbe\SupermercadoEscolaApi\Model\IntegratorRmClienteFornecedorManagement"/>
 
     <preference for="Funarbe\SupermercadoEscolaApi\Api\VerificaProdutoSemImagemManagementInterface"
                 type="Funarbe\SupermercadoEscolaApi\Model\VerificaProdutoSemImagemManagement"/>
 </config>
-
