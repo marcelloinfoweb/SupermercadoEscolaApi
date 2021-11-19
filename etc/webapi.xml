@@ -88,5 +88,13 @@
         </resources>
     </route>
 
+    <route url="/V1/funarbe-supermercadoescolaapi/verifica-produto-sem-imagem" method="GET">
+        <service class="Funarbe\SupermercadoEscolaApi\Api\VerificaProdutoSemImagemManagementInterface"
+                 method="getProdutoSemImagem"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+
 </routes>
 
