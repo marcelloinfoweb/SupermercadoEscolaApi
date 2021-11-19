@@ -12,6 +12,7 @@ namespace Funarbe\SupermercadoEscolaApi\Model;
 use Funarbe\SupermercadoEscolaApi\Api\DetalhesProdutosManagementInterface;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\ResourceConnection;
+use Magento\Framework\DB\Adapter\AdapterInterface;
 
 class DetalhesProdutosManagement implements DetalhesProdutosManagementInterface
 {
@@ -20,9 +21,7 @@ class DetalhesProdutosManagement implements DetalhesProdutosManagementInterface
      */
     public function getDetalhesProdutos($productId)
     {
-        $objectManager = ObjectManager::getInstance();
-        $resource = $objectManager->get(ResourceConnection::class);
-        $connection = $resource->getConnection();
+        $connection = $this->connection();
 
         $sql = "SELECT
                     V.order_id,
@@ -58,25 +57,36 @@ class DetalhesProdutosManagement implements DetalhesProdutosManagementInterface
 
 
     /**
-     * @return mixed
+     * @return array
      */
-    public function getProdutos()
+    public function getProdutos(): array
+    {
+        $connection = $this->connection();
+
+        $sql = "SELECT DISTINCT
+                    cpev.value AS sku, cpev2.value AS ean
+                FROM
+                    eav_attribute
+                        INNER JOIN
+                    catalog_product_entity_int cpei ON eav_attribute.attribute_id = cpei.attribute_id
+                        INNER JOIN
+                    catalog_product_entity_varchar cpev ON cpei.entity_id = cpev.entity_id
+                        AND cpev.attribute_id = 233
+                        INNER JOIN
+                    catalog_product_entity_varchar cpev2 ON cpev2.entity_id = cpev.entity_id
+                        AND cpev2.attribute_id = 237
+                        INNER JOIN
+                    catalog_product_entity cpe ON cpei.entity_id = cpe.entity_id
+                ORDER BY sku;";
+
+        return $connection->fetchAll($sql);
+    }
+
+    public function connection(): AdapterInterface
     {
         $objectManager = ObjectManager::getInstance();
         $resource = $objectManager->get(ResourceConnection::class);
-        $connection = $resource->getConnection();
-
-        $sql = "SELECT
-                    cpev.value
-                FROM
-                    eav_attribute
-                JOIN catalog_product_entity_int cpei ON eav_attribute.attribute_id = cpei.attribute_id
-                JOIN catalog_product_entity_varchar cpev ON cpei.entity_id = cpev.entity_id
-                JOIN catalog_product_entity cpe ON cpei.entity_id = cpe.entity_id
-                WHERE
-                    cpev.attribute_id = 233;";
-
-        return $connection->fetchAll($sql);
+        return $resource->getConnection();
     }
 
 }
