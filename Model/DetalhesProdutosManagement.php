@@ -63,21 +63,13 @@ class DetalhesProdutosManagement implements DetalhesProdutosManagementInterface
     {
         $connection = $this->connection();
 
-        $sql = "SELECT DISTINCT
-                    cpev.value AS sku, cpev2.value AS ean
-                FROM
-                    eav_attribute
-                        INNER JOIN
-                    catalog_product_entity_int cpei ON eav_attribute.attribute_id = cpei.attribute_id
-                        INNER JOIN
-                    catalog_product_entity_varchar cpev ON cpei.entity_id = cpev.entity_id
-                        AND cpev.attribute_id = 233
-                        INNER JOIN
-                    catalog_product_entity_varchar cpev2 ON cpev2.entity_id = cpev.entity_id
-                        AND cpev2.attribute_id = 237
-                        INNER JOIN
-                    catalog_product_entity cpe ON cpei.entity_id = cpe.entity_id
-                ORDER BY sku;";
+        $sql = "SELECT DISTINCT cpev3.value AS nome_produto, cpev.value AS sku, cpev2.value AS ean
+                FROM eav_attribute
+                INNER JOIN catalog_product_entity_int cpei ON eav_attribute.attribute_id = cpei.attribute_id
+                INNER JOIN catalog_product_entity_varchar cpev ON cpei.entity_id = cpev.entity_id AND cpev.attribute_id = 233
+                INNER JOIN catalog_product_entity_varchar cpev2 ON cpev2.entity_id = cpev.entity_id AND cpev2.attribute_id = 237
+                INNER JOIN catalog_product_entity_varchar cpev3 ON cpev3.entity_id = cpev.entity_id AND cpev3.attribute_id = 73
+                INNER JOIN catalog_product_entity cpe ON cpei.entity_id = cpe.entity_id";
 
         return $connection->fetchAll($sql);
     }
