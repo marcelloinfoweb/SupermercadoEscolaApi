@@ -1,64 +1,73 @@
 <?php
 
-/**
- * Copyright ©  All rights reserved.
- * See COPYING.txt for license details.
- */
-
 declare(strict_types=1);
 
 namespace Funarbe\SupermercadoEscolaApi\Model;
 
 use Funarbe\SupermercadoEscolaApi\Api\DetalhesProdutosManagementInterface;
+use Magento\Framework\Exception\NoSuchEntityException;
+
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\DB\Adapter\AdapterInterface;
 
 class DetalhesProdutosManagement implements DetalhesProdutosManagementInterface
 {
+    protected \Magento\Catalog\Model\ProductRepository $_productRepository;
+
+    public function __construct(
+        \Magento\Catalog\Model\ProductRepository $productRepository
+    )
+    {
+        $this->_productRepository = $productRepository;
+    }
+
     /**
-     * @param $productId ;
+     * @param $productId
+     * @return \Magento\Catalog\Api\Data\ProductInterface|mixed|null
+     * @throws NoSuchEntityException
      */
     public function getDetalhesProdutos($productId)
     {
-        $connection = $this->connection();
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        $product = $objectManager->get('Magento\Catalog\Model\Product')->load($productId);
 
-        $sql = "SELECT
-                    V.order_id,
-                    SO.increment_id AS id_order_admin,
-                    CONCAT(SO.customer_firstname, ' ', SO.customer_lastname) AS nome_cliente_completo,
-                    P.entity_id AS id_produto,
-                    P.value AS nome_produto,
-                    C.value AS nome_categoria,
-                    V.qty_ordered AS qty_ordered,
-                    V.sku,
-                    P2.value AS ean,
-                    SO.caso_produto_nao_encontrado,
-                    JSON_EXTRACT(V.product_options, '$.options[0].value') AS observacao
-                FROM sales_order_item V
-                INNER JOIN catalog_category_product PC ON
-                    V.product_id = PC.product_id
-                INNER JOIN catalog_product_entity_varchar P ON
-                    P.entity_id = PC.product_id AND P.attribute_id = 73 AND P.store_id = 0
-                INNER JOIN catalog_product_entity_varchar P2 ON
-                    P2.entity_id = PC.product_id AND P2.attribute_id = 237 AND P2.store_id = 0
-                INNER JOIN catalog_category_entity_varchar C ON
-                    C.entity_id = PC.category_id
-                INNER JOIN sales_order SO
-                WHERE PC.position = 0 AND C.attribute_id = (
-                SELECT
-                    attribute_id
-                FROM eav_attribute
-                WHERE attribute_code = 'name' AND entity_type_id = 3) AND V.product_id = $productId
-                GROUP BY P.entity_id, id_order_admin, nome_cliente_completo, id_produto, nome_produto, nome_categoria, qty_ordered, observacao, V.sku, SO.caso_produto_nao_encontrado";
+//        return $this->_productRepository->getById($productId);
 
-        return $connection->fetchAll($sql);
+//        $connection = $this->connection();
+//
+//        $sql = "SELECT
+//                    V.order_id,
+//                    SO.increment_id AS id_order_admin,
+//                    CONCAT(SO.customer_firstname, ' ', SO.customer_lastname) AS nome_cliente_completo,
+//                    P.entity_id AS id_produto,
+//                    P.value AS nome_produto,
+//                    C.value AS nome_categoria,
+//                    V.qty_ordered AS qty_ordered,
+//                    V.sku,
+//                    P2.value AS ean,
+//                    SO.caso_produto_nao_encontrado,
+//                    JSON_EXTRACT(V.product_options, '$.options[0].value') AS observacao
+//                FROM sales_order_item V
+//                INNER JOIN catalog_category_product PC ON
+//                    V.product_id = PC.product_id
+//                INNER JOIN catalog_product_entity_varchar P ON
+//                    P.entity_id = PC.product_id AND P.attribute_id = 73 AND P.store_id = 0
+//                INNER JOIN catalog_product_entity_varchar P2 ON
+//                    P2.entity_id = PC.product_id AND P2.attribute_id = 237 AND P2.store_id = 0
+//                INNER JOIN catalog_category_entity_varchar C ON
+//                    C.entity_id = PC.category_id
+//                INNER JOIN sales_order SO
+//                WHERE PC.position = 0 AND C.attribute_id = (
+//                SELECT
+//                    attribute_id
+//                FROM eav_attribute
+//                WHERE attribute_code = 'name' AND entity_type_id = 3) AND V.product_id = $productId
+//                GROUP BY P.entity_id, id_order_admin, nome_cliente_completo, id_produto, nome_produto, nome_categoria, qty_ordered, observacao, V.sku, SO.caso_produto_nao_encontrado";
+//
+//        return $connection->fetchAll($sql);
     }
 
-
-    /**
-     * @return array
-     */
     public function getProdutos(): array
     {
         $connection = $this->connection();

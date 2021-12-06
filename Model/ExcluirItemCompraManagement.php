@@ -32,45 +32,55 @@ class ExcluirItemCompraManagement implements ExcluirItemCompraManagementInterfac
     /**
      * @param int $orderId
      * @param int $itemId
+     * @param float $qty_ordered
      * @throws \Exception
      */
-    public function getExcluirItemCompra(int $orderId, int $itemId)
+    public function getExcluirItemCompra(int $orderId, int $itemId, float $qty_ordered)
     {
+
         $_order = $this->orderRepository->get($orderId);
         $items = $_order->getAllItems();
 
-        foreach ($items as $item) {
-            $base_grand_total = $_order->getBaseGrandTotal();
-            $base_subtotal = $_order->getBaseSubtotal();
-            $base_tva = $_order->getBaseTaxAmount();
-            $grand_total = $_order->getGrandTotal();
-            $subtotal = $_order->getSubtotal();
-            $tva = $_order->getTaxAmount();
-            $base_subtotal_incl_tax = $_order->getBaseSubtotalInclTax();
-            $subtotal_incl_tax = $_order->getSubtotalInclTax();
-            $total_item_count = $_order->getTotalItemCount();
+        $base_grand_total = $_order->getBaseGrandTotal();
+        $base_subtotal = $_order->getBaseSubtotal();
+        $grand_total = $_order->getGrandTotal();
+        $subtotal = $_order->getSubtotal();
+        $total_item_count = $_order->getTotalItemCount();
 
-            if ($item->getProductId() == $itemId) {
-                $item_price = $item->getPrice();
-                $item_tva = $item->getTaxAmount();
+        foreach ($items as $item) {
+
+            if ($itemId === (int)$item->getProductId()) {
+                $customerGroup = $_order->getCustomerGroupId();
+                $item_price = $item->getPrice() * $qty_ordered;
+
+                $discount = 0.00;
+
+                if ($customerGroup === '4') {
+                    $baseDiscount = 5;
+                    $discount = ($item_price * $baseDiscount) / 100;
+                }
+
                 try {
-                    $this->logger->info("[ INFO ] - Item $itemId da compra $orderId foi deletado com sucesso.");
+                    $this->logger->info(
+                        "[ INFO ] - Item $itemId da compra $orderId foi deletado"
+                    );
+                    /* Deleta o produto */
                     $item->delete();
-                } catch (\Exception $exception) {
+
+                } catch (\Exception $e) {
                     $this->logger->error(
-                        "[ ERROR ] - Item $itemId da compra $orderId não foi deletado",
-                        ['exception' => $exception]
+                        "[ ERROR ] - Item $itemId da compra $orderId não foi deletado ou não existe",
+                        ['exception' => $e]
                     );
                 }
-                $_order->setBaseGrandTotal($base_grand_total - $item_price - $item_tva);
+
+                $_order->setBaseGrandTotal($base_grand_total - $item_price);
                 $_order->setBaseSubtotal($base_subtotal - $item_price);
-                $_order->setBaseTaxAmount($base_tva - $item_tva);
-                $_order->setGrandTotal($grand_total - $item_price - $item_tva);
+                $_order->setGrandTotal($grand_total - $item_price);
                 $_order->setSubtotal($subtotal - $item_price);
-                $_order->setTaxAmount($tva - $item_tva);
-                $_order->setBaseSubtotalInclTax($base_subtotal_incl_tax - $item_price);
-                $_order->setSubtotalInclTax($subtotal_incl_tax - $item_price);
-                $_order->setTotalItemCount(count($items) - 1);
+                //$_order->setTotalItemCount(count($items) - 1);
+                $_order->setTotalItemCount($total_item_count - 1);
+                $_order->setDiscountAmount(abs($_order->getDiscountAmount()) - $discount);
                 $_order->save();
             }
         }

@@ -41,11 +41,6 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
      */
     protected $messageManager;
 
-    /**
-     * @var \Funarbe\SupermercadoEscolaApi\Model\ExcluirItemCompraManagement
-     */
-    private $excluirItemCompraManagement;
-
     public function __construct(
         \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
         \Magento\Catalog\Api\ProductRepositoryInterface $productRepository,
@@ -54,7 +49,8 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
         \Magento\Sales\Model\Order\ItemFactory $orderItemFactory,
         \Magento\Framework\App\Request\Http $request,
         \Magento\Framework\Message\ManagerInterface $messageManager,
-        \Funarbe\SupermercadoEscolaApi\Model\ExcluirItemCompraManagement $excluirItemCompraManagement
+        \Magento\Customer\Model\Session $customerSession,
+        \Magento\Customer\Model\CustomerFactory $customerEntityFactory
     ) {
         $this->productRepository = $productRepository;
         $this->orderRepository = $orderRepository;
@@ -63,7 +59,8 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
         $this->orderItemFactory = $orderItemFactory;
         $this->request = $request;
         $this->messageManager = $messageManager;
-        $this->excluirItemCompraManagement = $excluirItemCompraManagement;
+        $this->customerSession = $customerSession;
+        $this->customerEntityFactory = $customerEntityFactory;
     }
 
     /**
@@ -71,9 +68,7 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
      * @param float $quantidade
      * @param float $price
      * @param int $sku
-     * @param float $weight
      * @param int $itemId
-     * @param string $substituir
      * @return bool|\Magento\Framework\Message\ManagerInterface
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
@@ -82,14 +77,24 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
         float $quantidade,
         float $price,
         int $sku,
-        float $weight,
-        int $itemId,
-        string $substituir
+        int $itemId
     ) {
 
         $order = $this->orderRepository->get($order_id);
         $product = $this->productRepository->get($sku);
         $quote = $this->quoteRepository->get($order->getQuoteId());
+        $customerGroup = $order->getCustomerGroupId();
+
+        $priceQty = $price * $quantidade;
+        $comment = "Produto adicionado: ";
+
+        $discount = 0.00;
+
+        if ($customerGroup === '4') {
+            $baseDiscount = 5;
+            $discountValue = ($price * $baseDiscount) / 100;
+            $discount = $discountValue * $quantidade;
+        }
 
         try {
             /* Add Quote Item Start */
@@ -117,37 +122,31 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
                 ->setBasePrice($price)
                 ->setOriginalPrice($price)
                 ->setBaseOriginalPrice($price)
-                ->setPriceInclTax($price)
-                ->setBasePriceInclTax($price)
-                ->setRowTotal($price)
-                ->setBaseRowTotal($price)
-                ->setRowTotalInclTax($price)
-                ->setBaseRowTotalInclTax($price)
-                ->setWeight($weight)
-                ->setIsVirtual(0);
+                ->setRowTotal($priceQty)
+                ->setDiscountAmount($discount)
+                ->setBaseRowTotal($priceQty);
+
             $order->addItem($orderItem);
             /* Add Order Item End */
 
-            /* Update relavant order totals Start */
-            $order->setBaseGrandTotal($order->getBaseGrandTotal() + $price);
-            $order->setGrandTotal($order->getGrandTotal() + $price);
-            $order->setBaseSubtotal($order->getBaseSubtotal() + $price);
-            $order->setSubtotal($order->getSubtotal() + $price);
-            $order->setBaseSubtotalInclTax($order->getBaseSubtotalInclTax() + $price);
-            $order->setSubtotalInclTax($order->getSubtotalInclTax() + $price);
-            $order->setTotalItemCount($order->getTotalItemCount() + 1);
-            $order->setTotalQtyOrdered($order->getTotalQtyOrdered() + 1);
+            /* Update relevant order totals Start */
+            $order->setBaseSubtotal($order->getBaseSubtotal() + $priceQty - $discount);
+            $order->setSubtotal($order->getSubtotal() + $priceQty - $discount);
+            $order->setBaseGrandTotal($order->getBaseGrandTotal() + $priceQty - $discount);
+            $order->setGrandTotal($order->getGrandTotal() + $priceQty);
+            $order->setTotalItemCount($order->getTotalItemCount() + $quantidade);
+            $order->setTotalQtyOrdered($order->getTotalQtyOrdered() + $quantidade);
+            $order->setDiscountAmount(abs($order->getDiscountAmount()) + $discount);
+
+            $order->addStatusHistoryComment($comment . "id " . $product->getId() . " - " . $product->getName(), false)
+                ->setIsCustomerNotified(false);
+
             $this->orderRepository->save($order);
-            /* Update relavant order totals End */
-
-            if ($substituir === 'Sim') {
-                /* DELETAR PRODUTO */
-                $this->excluirItemCompraManagement->getExcluirItemCompra($order_id, $itemId);
-            }
-
+            /* Update relevant order totals End */
         } catch (\Exception $e) {
             return $this->messageManager->addError($e->getMessage());
         }
         return true;
     }
 }
+
