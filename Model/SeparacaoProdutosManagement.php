@@ -11,6 +11,8 @@ namespace Funarbe\SupermercadoEscolaApi\Model;
 
 use Funarbe\SupermercadoEscolaApi\Api\SeparacaoProdutosManagementInterface;
 use Magento\Framework\App\ObjectManager;
+use Magento\Sales\Model\OrderRepository;
+use Magento\Framework\App\ResourceConnection;
 
 class SeparacaoProdutosManagement implements SeparacaoProdutosManagementInterface
 {
@@ -24,18 +26,8 @@ class SeparacaoProdutosManagement implements SeparacaoProdutosManagementInterfac
     public function getSeparacaoProdutos(int $orderId)
     {
         $objectManager = ObjectManager::getInstance();
-        $resource = $objectManager->get('Magento\Framework\App\ResourceConnection');
-        $connection = $resource->getConnection();
-        // $eav_attribute = $resource->getTableName('eav_attribute');
-        // $sales_order_item = $resource->getTableName('sales_order_item');
-        // $sales_order = $resource->getTableName('sales_order');
-        // $catalog_category_product = $resource->getTableName('catalog_category_product');
-        // $catalog_product_entity_varchar = $resource->getTableName('catalog_product_entity_varchar');
-        // $catalog_category_entity_varchar = $resource->getTableName('catalog_category_entity_varchar');
-        $order = $objectManager->create('\Magento\Sales\Model\OrderRepository')->get($orderId);
-        $orderItems = $order->getAllItems();
-
-        foreach ($orderItems as $item) {
+        $connection = $objectManager->get(ResourceConnection::class)->getConnection();
+        foreach ($objectManager->create(OrderRepository::class)->get($orderId)->getAllItems() as $item) {
             $order_Id = $item->getOrderId();
 
 //            $sql = "SELECT * FROM api_separacao_produtos WHERE order_id = $order_Id";
@@ -48,7 +40,7 @@ class SeparacaoProdutosManagement implements SeparacaoProdutosManagementInterfac
                      P.entity_id AS id_produto,
                      P.value AS nome_produto,
                      P2.value AS ean,
-                     C.value AS nome_categoria,
+                     GROUP_CONCAT(DISTINCT C.value ORDER BY C.value ASC SEPARATOR ', ') AS nome_categoria,
                      V.qty_ordered AS qty_ordered,
                      SO.status,
                      V.sku,
@@ -66,7 +58,7 @@ class SeparacaoProdutosManagement implements SeparacaoProdutosManagementInterfac
                     SELECT attribute_id
                     FROM eav_attribute
                     WHERE attribute_code = 'name' AND entity_type_id = 3) AND V.order_id = $order_Id
-                    GROUP BY P.entity_id, V.order_id, id_order_admin, nome_cliente_completo, id_produto, nome_produto, nome_categoria, qty_ordered, SO.status, observacao, SO.caso_produto_nao_encontrado, V.sku";
+                    GROUP BY P.entity_id, V.order_id, id_order_admin, nome_cliente_completo, id_produto, nome_produto, qty_ordered, SO.status, observacao, SO.caso_produto_nao_encontrado, V.sku";
 
             return $connection->fetchAll($sql);
         }
