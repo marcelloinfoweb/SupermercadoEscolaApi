@@ -45,6 +45,7 @@ class SeparacaoProdutosManagement implements SeparacaoProdutosManagementInterfac
                      SO.status,
                      V.sku,
                      JSON_EXTRACT(V.product_options, '$.options[0].value') AS observacao,
+                     JSON_EXTRACT(V.product_options, '$.options[1].value') AS opcoes_carne,
                      SO.caso_produto_nao_encontrado
                     FROM sales_order_item V
                     INNER JOIN catalog_category_product PC ON V.product_id = PC.product_id
@@ -58,7 +59,7 @@ class SeparacaoProdutosManagement implements SeparacaoProdutosManagementInterfac
                     SELECT attribute_id
                     FROM eav_attribute
                     WHERE attribute_code = 'name' AND entity_type_id = 3) AND V.order_id = $order_Id
-                    GROUP BY P.entity_id, V.order_id, id_order_admin, nome_cliente_completo, id_produto, nome_produto, qty_ordered, SO.status, observacao, SO.caso_produto_nao_encontrado, V.sku";
+                    GROUP BY P.entity_id, V.order_id, id_order_admin, nome_cliente_completo, id_produto, nome_produto, qty_ordered, SO.status, observacao, opcoes_carne, SO.caso_produto_nao_encontrado, V.sku";
 
             return $connection->fetchAll($sql);
         }

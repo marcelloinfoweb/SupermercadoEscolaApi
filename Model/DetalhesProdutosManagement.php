@@ -29,8 +29,8 @@ class DetalhesProdutosManagement implements DetalhesProdutosManagementInterface
      */
     public function getDetalhesProdutos($productId)
     {
-        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-        $product = $objectManager->get('Magento\Catalog\Model\Product')->load($productId);
+        $product = \Magento\Framework\App\ObjectManager::getInstance()
+            ->get('Magento\Catalog\Model\Product')->load($productId);
 
 //        return $this->_productRepository->getById($productId);
 
