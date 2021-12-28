@@ -11,7 +11,7 @@ class ExcluirItemCompraManagement implements ExcluirItemCompraManagementInterfac
     /**
      * @var \Psr\Log\LoggerInterface
      */
-    private $logger;
+    private LoggerInterface $logger;
     /**
      * @var \Magento\Sales\Api\OrderRepositoryInterface
      */
@@ -54,6 +54,7 @@ class ExcluirItemCompraManagement implements ExcluirItemCompraManagementInterfac
                 $item_price = $item->getPrice() * $qty_ordered;
 
                 $discount = 0.00;
+                $comment = "Produto excluído: ";
 
                 if ($customerGroup === '4') {
                     $baseDiscount = 5;
@@ -61,12 +62,9 @@ class ExcluirItemCompraManagement implements ExcluirItemCompraManagementInterfac
                 }
 
                 try {
-                    $this->logger->info(
-                        "[ INFO ] - Item $itemId da compra $orderId foi deletado"
-                    );
                     /* Deleta o produto */
                     $item->delete();
-
+                    $this->logger->info("[ INFO ] - Item $itemId da compra $orderId foi deletado");
                 } catch (\Exception $e) {
                     $this->logger->error(
                         "[ ERROR ] - Item $itemId da compra $orderId não foi deletado ou não existe",
@@ -81,6 +79,9 @@ class ExcluirItemCompraManagement implements ExcluirItemCompraManagementInterfac
                 //$_order->setTotalItemCount(count($items) - 1);
                 $_order->setTotalItemCount($total_item_count - 1);
                 $_order->setDiscountAmount(abs($_order->getDiscountAmount()) - $discount);
+                $_order->addStatusHistoryComment(
+                    $comment . "id " . $item->getId() . " - " . $item->getName(), false
+                )->setIsCustomerNotified(false);
                 $_order->save();
             }
         }
