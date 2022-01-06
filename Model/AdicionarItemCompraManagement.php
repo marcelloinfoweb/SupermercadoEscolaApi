@@ -2,6 +2,7 @@
 
 namespace Funarbe\SupermercadoEscolaApi\Model;
 
+use Exception;
 use Funarbe\SupermercadoEscolaApi\Api\AdicionarItemCompraManagementInterface;
 
 class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInterface
@@ -79,7 +80,6 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
         int $sku,
         int $itemId
     ) {
-
         $order = $this->orderRepository->get($order_id);
         $product = $this->productRepository->get($sku);
         $quote = $this->quoteRepository->get($order->getQuoteId());
@@ -91,19 +91,18 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
         $discount = 0.00;
 
         if ($customerGroup === '4') {
-            $baseDiscount = 5;
-            $discountValue = ($price * $baseDiscount) / 100;
-            $discount = $discountValue * $quantidade;
+            $discount = abs(($priceQty * 5) / 100);
         }
 
         try {
             /* Add Quote Item Start */
             $quoteItem = $this->cartItemFactory->create();
-            $quoteItem->setProduct($product);
-            $quoteItem->setQty($quantidade);
-            $quoteItem->setCustomPrice($price);
-            $quoteItem->setOriginalCustomPrice($price);
-            $quoteItem->getProduct()->setIsSuperMode(true);
+            $quoteItem->setProduct($product)
+                ->setQty($quantidade)
+                ->setCustomPrice($price)
+                ->setOriginalCustomPrice($price)
+                ->getProduct()->setIsSuperMode(true);
+
             $quote->addItem($quoteItem);
             $quote->collectTotals()->save();
             /* Add Quote Item End */
@@ -130,20 +129,21 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
             /* Add Order Item End */
 
             /* Update relevant order totals Start */
-            $order->setBaseSubtotal($order->getBaseSubtotal() + $priceQty - $discount);
-            $order->setSubtotal($order->getSubtotal() + $priceQty - $discount);
-            $order->setBaseGrandTotal($order->getBaseGrandTotal() + $priceQty - $discount);
-            $order->setGrandTotal($order->getGrandTotal() + $priceQty);
+            $order->setSubtotal($order->getSubtotal() + $priceQty);
+            $order->setBaseSubtotal($order->getBaseSubtotal() + $priceQty);
+            $order->setGrandTotal(($order->getGrandTotal() + $priceQty) - $discount);
+            $order->setBaseGrandTotal(($order->getBaseGrandTotal() + $priceQty) - $discount);
             $order->setTotalItemCount($order->getTotalItemCount() + $quantidade);
             $order->setTotalQtyOrdered($order->getTotalQtyOrdered() + $quantidade);
             $order->setDiscountAmount(abs($order->getDiscountAmount()) + $discount);
+            $order->setBaseDiscountAmount(abs($order->getDiscountAmount()) + $discount);
 
             $order->addStatusHistoryComment($comment . "id " . $product->getId() . " - " . $product->getName(), false)
                 ->setIsCustomerNotified(false);
 
             $this->orderRepository->save($order);
             /* Update relevant order totals End */
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return $this->messageManager->addError($e->getMessage());
         }
         return true;

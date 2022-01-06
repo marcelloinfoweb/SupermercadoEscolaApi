@@ -2,6 +2,7 @@
 
 namespace Funarbe\SupermercadoEscolaApi\Model;
 
+use Exception;
 use Funarbe\SupermercadoEscolaApi\Api\ExcluirItemCompraManagementInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Psr\Log\LoggerInterface;
@@ -12,10 +13,11 @@ class ExcluirItemCompraManagement implements ExcluirItemCompraManagementInterfac
      * @var \Psr\Log\LoggerInterface
      */
     private LoggerInterface $logger;
+
     /**
      * @var \Magento\Sales\Api\OrderRepositoryInterface
      */
-    private $orderRepository;
+    private OrderRepositoryInterface $orderRepository;
 
     /**
      * @param \Psr\Log\LoggerInterface $logger
@@ -37,52 +39,48 @@ class ExcluirItemCompraManagement implements ExcluirItemCompraManagementInterfac
      */
     public function getExcluirItemCompra(int $orderId, int $itemId, float $qty_ordered)
     {
-
-        $_order = $this->orderRepository->get($orderId);
-        $items = $_order->getAllItems();
-
-        $base_grand_total = $_order->getBaseGrandTotal();
-        $base_subtotal = $_order->getBaseSubtotal();
-        $grand_total = $_order->getGrandTotal();
-        $subtotal = $_order->getSubtotal();
-        $total_item_count = $_order->getTotalItemCount();
-
-        foreach ($items as $item) {
+        $order = $this->orderRepository->get($orderId);
+        foreach ($order->getAllItems() as $item) {
 
             if ($itemId === (int)$item->getProductId()) {
-                $customerGroup = $_order->getCustomerGroupId();
-                $item_price = $item->getPrice() * $qty_ordered;
+                $customerGroup = $order->getCustomerGroupId();
+                $item_price = $item->getRowTotal();
 
                 $discount = 0.00;
                 $comment = "Produto excluído: ";
 
                 if ($customerGroup === '4') {
-                    $baseDiscount = 5;
-                    $discount = ($item_price * $baseDiscount) / 100;
+                    $discount = abs(($item_price * 5) / 100);
                 }
 
                 try {
                     /* Deleta o produto */
                     $item->delete();
+
                     $this->logger->info("[ INFO ] - Item $itemId da compra $orderId foi deletado");
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     $this->logger->error(
                         "[ ERROR ] - Item $itemId da compra $orderId não foi deletado ou não existe",
                         ['exception' => $e]
                     );
                 }
 
-                $_order->setBaseGrandTotal($base_grand_total - $item_price);
-                $_order->setBaseSubtotal($base_subtotal - $item_price);
-                $_order->setGrandTotal($grand_total - $item_price);
-                $_order->setSubtotal($subtotal - $item_price);
-                //$_order->setTotalItemCount(count($items) - 1);
-                $_order->setTotalItemCount($total_item_count - 1);
-                $_order->setDiscountAmount(abs($_order->getDiscountAmount()) - $discount);
-                $_order->addStatusHistoryComment(
-                    $comment . "id " . $item->getId() . " - " . $item->getName(), false
-                )->setIsCustomerNotified(false);
-                $_order->save();
+                $order->setSubtotal($order->getSubtotal() - $item_price);
+                $order->setBaseSubtotal($order->getBaseSubtotal() - $item_price);
+
+                $order->setGrandTotal($order->getGrandTotal() - $item_price + $discount);
+                $order->setBaseGrandTotal($order->getBaseGrandTotal() - $item_price + $discount);
+
+                $order->setTotalItemCount($order->getTotalQtyOrdered() - $item->getQtyOrdered());
+
+                $order->setDiscountAmount($order->getDiscountAmount() - $discount);
+                $order->setBaseDiscountAmount($order->getDiscountAmount() - $discount);
+
+                $order->addStatusHistoryComment($comment . "id " . $item->getId() . " - " . $item->getName(), false);
+                $order->setIsCustomerNotified(false);
+
+
+                $order->save();
             }
         }
     }
