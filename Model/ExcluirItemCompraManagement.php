@@ -43,13 +43,13 @@ class ExcluirItemCompraManagement implements ExcluirItemCompraManagementInterfac
         foreach ($order->getAllItems() as $item) {
 
             if ($itemId === (int)$item->getProductId()) {
-                $customerGroup = $order->getCustomerGroupId();
+                $colaborador = $this->helper->getColaborador($order->getCustomerId());
                 $item_price = $item->getRowTotal();
 
                 $discount = 0.00;
                 $comment = "Produto excluído: ";
 
-                if ($customerGroup === '4') {
+                if ($colaborador === '1') {
                     $discount = abs(($item_price * 5) / 100);
                 }
 

@@ -94,7 +94,6 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
 
         $priceQty = $price * $quantidade;
         $comment = "Produto adicionado: ";
-        var_dump($colaborador);
 
         $discount = 0.00;
         if ($colaborador === '1') {
