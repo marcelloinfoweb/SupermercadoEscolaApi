@@ -3,6 +3,7 @@
 namespace Funarbe\SupermercadoEscolaApi\Model;
 
 use Exception;
+use Funarbe\Helper\Helper\Data;
 use Funarbe\SupermercadoEscolaApi\Api\AdicionarItemCompraManagementInterface;
 
 class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInterface
@@ -10,37 +11,41 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
     /**
      * @var \Magento\Sales\Api\OrderRepositoryInterface
      */
-    protected $orderRepository;
+    protected \Magento\Sales\Api\OrderRepositoryInterface $orderRepository;
 
     /**
      * @var \Magento\Catalog\Api\ProductRepositoryInterface
      */
-    protected $productRepository;
+    protected \Magento\Catalog\Api\ProductRepositoryInterface $productRepository;
 
     /**
      * @var \Magento\Quote\Api\Data\CartItemInterfaceFactory
      */
-    protected $cartItemFactory;
+    protected \Magento\Quote\Api\Data\CartItemInterfaceFactory $cartItemFactory;
 
     /**
      * @var \Magento\Quote\Api\CartRepositoryInterface
      */
-    protected $quoteRepository;
+    protected \Magento\Quote\Api\CartRepositoryInterface $quoteRepository;
 
     /**
      * @var \Magento\Sales\Model\Order\ItemFactory
      */
-    protected $orderItemFactory;
+    protected \Magento\Sales\Model\Order\ItemFactory $orderItemFactory;
 
     /**
      * @var \Magento\Framework\App\Request\Http
      */
-    protected $request;
+    protected \Magento\Framework\App\Request\Http $request;
 
     /**
      * @var \Magento\Framework\Message\ManagerInterface
      */
-    protected $messageManager;
+    protected \Magento\Framework\Message\ManagerInterface $messageManager;
+    /**
+     * @var \Funarbe\Helper\Helper\Data
+     */
+    private Data $helper;
 
     public function __construct(
         \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
@@ -51,7 +56,8 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
         \Magento\Framework\App\Request\Http $request,
         \Magento\Framework\Message\ManagerInterface $messageManager,
         \Magento\Customer\Model\Session $customerSession,
-        \Magento\Customer\Model\CustomerFactory $customerEntityFactory
+        \Magento\Customer\Model\CustomerFactory $customerEntityFactory,
+        \Funarbe\Helper\Helper\Data $data
     ) {
         $this->productRepository = $productRepository;
         $this->orderRepository = $orderRepository;
@@ -62,6 +68,7 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
         $this->messageManager = $messageManager;
         $this->customerSession = $customerSession;
         $this->customerEntityFactory = $customerEntityFactory;
+        $this->helper = $data;
     }
 
     /**
@@ -83,14 +90,14 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
         $order = $this->orderRepository->get($order_id);
         $product = $this->productRepository->get($sku);
         $quote = $this->quoteRepository->get($order->getQuoteId());
-        $customerGroup = $order->getCustomerGroupId();
+        $colaborador = $this->helper->getColaborador($order->getCustomerId());
 
         $priceQty = $price * $quantidade;
         $comment = "Produto adicionado: ";
+        var_dump($colaborador);
 
         $discount = 0.00;
-
-        if ($customerGroup === '4') {
+        if ($colaborador === '1') {
             $discount = abs(($priceQty * 5) / 100);
         }
 
