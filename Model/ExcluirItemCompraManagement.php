@@ -19,16 +19,20 @@ class ExcluirItemCompraManagement implements ExcluirItemCompraManagementInterfac
      */
     private OrderRepositoryInterface $orderRepository;
 
+    private \Funarbe\Helper\Helper\Data $helper;
+
     /**
      * @param \Psr\Log\LoggerInterface $logger
      * @param \Magento\Sales\Api\OrderRepositoryInterface $orderRepository
      */
     public function __construct(
         LoggerInterface $logger,
-        OrderRepositoryInterface $orderRepository
+        OrderRepositoryInterface $orderRepository,
+        \Funarbe\Helper\Helper\Data $helper
     ) {
         $this->logger = $logger;
         $this->orderRepository = $orderRepository;
+        $this->helper = $helper;
     }
 
     /**
