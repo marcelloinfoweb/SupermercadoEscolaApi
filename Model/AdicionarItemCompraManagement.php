@@ -106,7 +106,6 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
             $quoteItem->setProduct($product)
                 ->setQty($quantidade)
                 ->setCustomPrice($price)
-                ->setOriginalCustomPrice($price)
                 ->getProduct()->setIsSuperMode(true);
 
             $quote->addItem($quoteItem);
@@ -125,14 +124,18 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
                 ->setQtyOrdered($quantidade)
                 ->setPrice($price)
                 ->setBasePrice($price)
-                ->setOriginalPrice($price)
-                ->setBaseOriginalPrice($price)
+                ->setOriginalPrice($orderItem->getOriginalPrice())
+                ->setBaseOriginalPrice($orderItem->getBaseOriginalPrice())
                 ->setRowTotal($priceQty)
                 ->setDiscountAmount($discount)
                 ->setBaseRowTotal($priceQty);
 
             $order->addItem($orderItem);
             /* Add Order Item End */
+
+//            var_dump($orderItem->getOriginalPrice());
+//            die();
+
 
             /* Update relevant order totals Start */
             $order->setSubtotal($order->getSubtotal() + $priceQty);
