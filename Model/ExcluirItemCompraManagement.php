@@ -44,9 +44,10 @@ class ExcluirItemCompraManagement implements ExcluirItemCompraManagementInterfac
     public function getExcluirItemCompra(int $orderId, int $itemId, float $qty_ordered)
     {
         $order = $this->orderRepository->get($orderId);
-        foreach ($order->getAllItems() as $item) {
-
-            if ($itemId === (int)$item->getProductId()) {
+        $itens = $order->getAllItems();
+        foreach ($itens as $item) {
+            $productId = $item->getProductId();
+            if ($itemId === (int)$productId) {
                 $colaborador = $this->helper->getColaborador($order->getCustomerId());
                 $item_price = $item->getRowTotal();
 
@@ -55,6 +56,7 @@ class ExcluirItemCompraManagement implements ExcluirItemCompraManagementInterfac
 
                 if ($colaborador === '1') {
                     $discount = abs(($item_price * 5) / 100);
+                    $discount2 = $discount*2;
                 }
 
                 try {
@@ -77,12 +79,11 @@ class ExcluirItemCompraManagement implements ExcluirItemCompraManagementInterfac
 
                 $order->setTotalItemCount($order->getTotalQtyOrdered() - $item->getQtyOrdered());
 
-                $order->setDiscountAmount($order->getDiscountAmount() - $discount);
-                $order->setBaseDiscountAmount($order->getDiscountAmount() - $discount);
+                $order->setDiscountAmount(abs($order->getDiscountAmount()) - $discount2);
+                $order->setBaseDiscountAmount(abs($order->getBaseDiscountAmount()) - $discount2);
 
                 $order->addStatusHistoryComment($comment . "id " . $item->getId() . " - " . $item->getName(), false);
                 $order->setIsCustomerNotified(false);
-
 
                 $order->save();
             }
