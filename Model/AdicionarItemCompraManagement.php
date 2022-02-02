@@ -92,6 +92,8 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
         $quote = $this->quoteRepository->get($order->getQuoteId());
         $colaborador = $this->helper->getColaborador($order->getCustomerId());
 
+        $price = '';
+        $price = $product->getPrice();
         $priceQty = $price * $quantidade;
         $comment = "Produto adicionado: ";
 
@@ -122,20 +124,16 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
                 ->setName($product->getName())
                 ->setSku($product->getSku())
                 ->setQtyOrdered($quantidade)
-                ->setPrice($price)
-                ->setBasePrice($price)
-                ->setOriginalPrice($orderItem->getOriginalPrice())
-                ->setBaseOriginalPrice($orderItem->getBaseOriginalPrice())
-                ->setRowTotal($priceQty)
-                ->setDiscountAmount($discount)
-                ->setBaseRowTotal($priceQty);
+                ->setPrice($product->getPrice())
+                ->setBasePrice($product->getPrice())
+                ->setOriginalPrice($product->getPrice())
+                ->setBaseOriginalPrice($product->getPrice())
+                ->setRowTotal($product->getPrice() * $quantidade)
+                ->setBaseRowTotal($product->getPrice() * $quantidade)
+                ->setDiscountAmount($discount);
 
             $order->addItem($orderItem);
             /* Add Order Item End */
-
-//            var_dump($orderItem->getOriginalPrice());
-//            die();
-
 
             /* Update relevant order totals Start */
             $order->setSubtotal($order->getSubtotal() + $priceQty);
