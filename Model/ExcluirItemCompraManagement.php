@@ -57,7 +57,6 @@ class ExcluirItemCompraManagement implements ExcluirItemCompraManagementInterfac
 
                 if ($colaborador === '1') {
                     $discount = abs(($item_price * 5) / 100);
-                    $discount2 = $discount*2;
                 }
 
                 try {
@@ -80,8 +79,8 @@ class ExcluirItemCompraManagement implements ExcluirItemCompraManagementInterfac
 
                 $order->setTotalItemCount($order->getTotalQtyOrdered() - $item->getQtyOrdered());
 
-                $order->setDiscountAmount(abs($order->getDiscountAmount()) - $discount2);
-                $order->setBaseDiscountAmount(abs($order->getBaseDiscountAmount()) - $discount2);
+                $order->setDiscountAmount(abs($order->getDiscountAmount()) - $discount);
+                $order->setBaseDiscountAmount(abs($order->getBaseDiscountAmount()) - $discount);
 
                 $order->addStatusHistoryComment($comment . "id " . $item->getId() . " - " . $item->getName(), false);
                 $order->setIsCustomerNotified(false);
