@@ -92,10 +92,9 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
         $quote = $this->quoteRepository->get($order->getQuoteId());
         $colaborador = $this->helper->getColaborador($order->getCustomerId());
 
-        $price = '';
         $price = $product->getPrice();
         $priceQty = $price * $quantidade;
-        $comment = "Produto adicionado: ";
+        $comment = 'Produto adicionado: ';
 
         $discount = 0.00;
         if ($colaborador === '1') {
@@ -142,10 +141,9 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
             $order->setBaseGrandTotal(($order->getBaseGrandTotal() + $priceQty) - $discount);
             $order->setTotalItemCount($order->getTotalItemCount() + $quantidade);
             $order->setTotalQtyOrdered($order->getTotalQtyOrdered() + $quantidade);
-            $order->setDiscountAmount(abs($order->getDiscountAmount()) + $discount);
-            $order->setBaseDiscountAmount(abs($order->getDiscountAmount()) + $discount);
-
-            $order->addStatusHistoryComment($comment . "id " . $product->getId() . " - " . $product->getName(), false)
+            $order->setDiscountAmount('-' . (abs($order->getDiscountAmount()) + $discount));
+            $order->setBaseDiscountAmount('-' . (abs($order->getDiscountAmount()) + $discount));
+            $order->addStatusHistoryComment($comment . 'id ' . $product->getId() . ' - ' . $product->getName(), false)
                 ->setIsCustomerNotified(false);
 
             $this->orderRepository->save($order);
