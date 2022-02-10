@@ -38,6 +38,7 @@ class SeparacaoProdutosManagement implements SeparacaoProdutosManagementInterfac
                      SOA.telephone,
                      P.entity_id AS id_produto,
                      P.value AS nome_produto,
+                     V.price,
                      P2.value AS ean,
                      GROUP_CONCAT(DISTINCT C.value ORDER BY C.value ASC SEPARATOR ', ') AS nome_categoria,
                      V.qty_ordered AS qty_ordered,
