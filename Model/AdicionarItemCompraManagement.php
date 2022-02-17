@@ -97,9 +97,9 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
         $comment = 'Produto adicionado: ';
 
         $discount = 0.00;
-        if ($colaborador === '1') {
-            $discount = abs(($priceQty * 5) / 100);
-        }
+//        if ($colaborador === '1') {
+//            $discount = abs(($priceQty * 5) / 100);
+//        }
 
         try {
             /* Add Quote Item Start */
