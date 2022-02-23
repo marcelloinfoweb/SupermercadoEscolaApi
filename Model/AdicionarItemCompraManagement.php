@@ -101,6 +101,11 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
             $discount = abs(($priceQty * 5) / 100);
         }
 
+        $requestInfo = [
+            'qty' => $quantidade,
+            'options' => [],
+        ];
+
         try {
             /* Add Quote Item Start */
             $quoteItem = $this->cartItemFactory->create();
@@ -110,7 +115,8 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
                 ->getProduct()->setIsSuperMode(true);
 
             $quote->addItem($quoteItem);
-            $quote->collectTotals()->save();
+            $quote->collectTotals();
+            $quote->save();
             /* Add Quote Item End */
 
             /* Add Order Item Start */
@@ -128,7 +134,8 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
                 ->setOriginalPrice($product->getPrice())
                 ->setBaseOriginalPrice($product->getPrice())
                 ->setRowTotal($product->getPrice() * $quantidade)
-                ->setBaseRowTotal($product->getPrice() * $quantidade);
+                ->setBaseRowTotal($product->getPrice() * $quantidade)
+                ->setProductOptions(['info_buyRequest' => $requestInfo]);
 
             $order->addItem($orderItem);
             /* Add Order Item End */
@@ -142,8 +149,8 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
             $order->setTotalQtyOrdered($order->getTotalQtyOrdered() + $quantidade);
             $order->setDiscountAmount('-' . (abs($order->getDiscountAmount()) + $discount));
             $order->setBaseDiscountAmount('-' . (abs($order->getDiscountAmount()) + $discount));
-            $order->addStatusHistoryComment($comment . 'id ' . $product->getId() . ' - ' . $product->getName(), false)
-                ->setIsCustomerNotified(false);
+            $order->addStatusHistoryComment($comment . 'id ' . $product->getId() . ' - ' . $product->getName(), false);
+            $order->setIsCustomerNotified(false);
 
             $this->orderRepository->save($order);
             /* Update relevant order totals End */
