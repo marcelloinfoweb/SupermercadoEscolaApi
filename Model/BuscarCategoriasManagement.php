@@ -11,6 +11,7 @@ namespace Funarbe\SupermercadoEscolaApi\Model;
 
 use Funarbe\SupermercadoEscolaApi\Api\BuscarCategoriasManagementInterface;
 use Magento\Framework\App\ObjectManager;
+use Magento\Sales\Model\OrderRepository;
 
 class BuscarCategoriasManagement implements BuscarCategoriasManagementInterface
 {
@@ -18,6 +19,9 @@ class BuscarCategoriasManagement implements BuscarCategoriasManagementInterface
      * {@inheritdoc}
      * @param $orderId ;
      * @param $filter ;
+     * @return array|void
+     * @throws \Magento\Framework\Exception\InputException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function getBuscarCategorias($orderId, $filter)
     {
@@ -28,7 +32,7 @@ class BuscarCategoriasManagement implements BuscarCategoriasManagementInterface
         $catalog_category_product = $resource->getTableName('catalog_category_product');
         $catalog_product_entity_varchar = $resource->getTableName('catalog_product_entity_varchar');
         $catalog_category_entity_varchar = $resource->getTableName('catalog_category_entity_varchar');
-        $order = $objectManager->create('\Magento\Sales\Model\OrderRepository')->get($orderId);
+        $order = $objectManager->create(OrderRepository::class)->get($orderId);
         $orderItems = $order->getAllItems();
 
         foreach ($orderItems as $item) {

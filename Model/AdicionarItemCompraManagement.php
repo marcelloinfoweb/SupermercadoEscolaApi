@@ -4,6 +4,7 @@ namespace Funarbe\SupermercadoEscolaApi\Model;
 
 use Exception;
 use Funarbe\Helper\Helper\Data;
+use Magento\Framework\App\ResourceConnection;
 use Funarbe\SupermercadoEscolaApi\Api\AdicionarItemCompraManagementInterface;
 
 class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInterface
@@ -42,12 +43,25 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
      * @var \Magento\Framework\Message\ManagerInterface
      */
     protected \Magento\Framework\Message\ManagerInterface $messageManager;
+
     /**
      * @var \Funarbe\Helper\Helper\Data
      */
     private Data $helper;
 
+    /**
+     * @var \Funarbe\SupermercadoEscolaApi\Model\ExcluirItemCompraManagement
+     */
+    private ExcluirItemCompraManagement $excluirItemCompra;
+
+    /**
+     * @var \Magento\Framework\App\ResourceConnection
+     */
+    private ResourceConnection $resource;
+
     public function __construct(
+        \Funarbe\SupermercadoEscolaApi\Model\ExcluirItemCompraManagement $excluirItemCompra,
+        \Magento\Framework\App\ResourceConnection $resource,
         \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
         \Magento\Catalog\Api\ProductRepositoryInterface $productRepository,
         \Magento\Quote\Api\Data\CartItemInterfaceFactory $cartItemFactory,
@@ -55,10 +69,10 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
         \Magento\Sales\Model\Order\ItemFactory $orderItemFactory,
         \Magento\Framework\App\Request\Http $request,
         \Magento\Framework\Message\ManagerInterface $messageManager,
-        \Magento\Customer\Model\Session $customerSession,
-        \Magento\Customer\Model\CustomerFactory $customerEntityFactory,
         \Funarbe\Helper\Helper\Data $data
     ) {
+        $this->excluirItemCompra = $excluirItemCompra;
+        $this->resource = $resource;
         $this->productRepository = $productRepository;
         $this->orderRepository = $orderRepository;
         $this->cartItemFactory = $cartItemFactory;
@@ -66,8 +80,6 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
         $this->orderItemFactory = $orderItemFactory;
         $this->request = $request;
         $this->messageManager = $messageManager;
-        $this->customerSession = $customerSession;
-        $this->customerEntityFactory = $customerEntityFactory;
         $this->helper = $data;
     }
 
@@ -77,8 +89,9 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
      * @param float $price
      * @param int $sku
      * @param int $itemId
-     * @return bool|\Magento\Framework\Message\ManagerInterface
+     * @return \Magento\Framework\Message\ManagerInterface|bool
      * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @throws \Exception
      */
     public function getAdicionarItemCompra(
         int $order_id,
@@ -91,7 +104,20 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
         $product = $this->productRepository->get($sku);
         $quote = $this->quoteRepository->get($order->getQuoteId());
         $colaborador = $this->helper->getColaborador($order->getCustomerId());
+        $connection = $this->resource->getConnection(ResourceConnection::DEFAULT_CONNECTION);
 
+        $query = "SELECT qty_ordered, price FROM sales_order_item WHERE order_id = $order_id AND product_id = $itemId";
+        $results = $connection->fetchAll($query);
+
+        $qty = 0;
+        if (count($results) >= 1) {
+            foreach ($results as $num => $values) {
+                $qty += $values['qty_ordered'];
+            }
+            $this->excluirItemCompra->getExcluirItemCompra($order_id, $itemId, $quantidade);
+        }
+
+        $quantidade += $qty;
         $price = $product->getPrice();
         $priceQty = $price * $quantidade;
         $comment = 'Produto adicionado: ';
@@ -101,10 +127,7 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
             $discount = abs(($priceQty * 5) / 100);
         }
 
-        $requestInfo = [
-            'qty' => $quantidade,
-            'options' => [],
-        ];
+        $requestInfo = ['qty' => $quantidade, 'options' => []];
 
         try {
             /* Add Quote Item Start */
@@ -149,9 +172,8 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
             $order->setTotalQtyOrdered($order->getTotalQtyOrdered() + $quantidade);
             $order->setDiscountAmount('-' . (abs($order->getDiscountAmount()) + $discount));
             $order->setBaseDiscountAmount('-' . (abs($order->getDiscountAmount()) + $discount));
-            $order->addStatusHistoryComment($comment . 'id ' . $product->getId() . ' - ' . $product->getName(), false);
-            $order->setIsCustomerNotified(false);
-
+            $order->addStatusHistoryComment($comment . 'id ' . $product->getId() . ' - '
+                . $product->getName(), false)->setIsCustomerNotified(false);
             $this->orderRepository->save($order);
             /* Update relevant order totals End */
         } catch (Exception $e) {
@@ -160,4 +182,3 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
         return true;
     }
 }
-
