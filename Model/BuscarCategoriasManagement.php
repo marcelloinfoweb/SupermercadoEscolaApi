@@ -59,7 +59,8 @@ class BuscarCategoriasManagement implements BuscarCategoriasManagementInterface
                       AND entity_type_id = 3)
                     AND V.order_id IN ($order_Id)
                     AND C.entity_id = $filter
-                    GROUP BY P.entity_id, V.order_id, nome_produto, nome_categoria, qty_ordered";
+                    GROUP BY P.entity_id, V.order_id, nome_produto, nome_categoria, qty_ordered
+                    ORDER BY NUll";
             return $connection->fetchAll($sql);
         }
     }
