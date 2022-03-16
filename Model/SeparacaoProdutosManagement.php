@@ -34,25 +34,21 @@ class SeparacaoProdutosManagement implements SeparacaoProdutosManagementInterfac
             $sql = "SELECT
                         V.order_id,
                         SO.increment_id AS id_order_admin,
-                        CONCAT(SO.customer_firstname,
-                        ' ',
-                        SO.customer_lastname) AS nome_cliente_completo,
+                        CONCAT(SO.customer_firstname, ' ', SO.customer_lastname) AS nome_cliente_completo,
                         SOA.telephone,
                         P.entity_id AS id_produto,
                         P.value AS nome_produto,
                         V.price,
                         P2.value AS ean,
-                        GROUP_CONCAT(DISTINCT C.value
-                    ORDER BY
-                        C.value ASC SEPARATOR ', ') AS nome_categoria,
+                        GROUP_CONCAT(DISTINCT C.value ORDER BY C.value ASC SEPARATOR ', ') AS nome_categoria,
                         V.qty_ordered AS qty_ordered,
                         SO.status,
                         V.sku,
-                        JSON_EXTRACT(V.product_options,
-                        '$.options[0].value') AS observacao,
-                        JSON_EXTRACT(V.product_options,
-                        '$.options[1].value') AS opcoes_carne,
-                        SO.caso_produto_nao_encontrado
+                        JSON_EXTRACT(V.product_options, '$.options[0].value') AS observacao,
+                        JSON_EXTRACT(V.product_options, '$.options[1].value') AS opcoes_carne,
+                        SO.caso_produto_nao_encontrado,
+                        SO.delivery_timeslot,
+                        SO.delivery_date
                     FROM
                         sales_order_item V
                     INNER JOIN
@@ -104,7 +100,9 @@ class SeparacaoProdutosManagement implements SeparacaoProdutosManagementInterfac
                         observacao,
                         opcoes_carne,
                         SO.caso_produto_nao_encontrado,
-                        V.sku
+                        V.sku,
+                        SO.delivery_timeslot,
+                        SO.delivery_date
                     ORDER BY
                         NULL";
 
