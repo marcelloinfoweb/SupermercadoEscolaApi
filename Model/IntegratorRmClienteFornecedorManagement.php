@@ -47,7 +47,8 @@ class IntegratorRmClienteFornecedorManagement implements IntegratorRmClienteForn
     public function getIntegratorRmClienteFornecedor($cpf)
     {
         $URL = "https://integrator2.funarbe.org.br/rm/cliente-fornecedor/";
-        $URL .= "?expand=SALDOCARTAOALIMENTACAO,FUNCIONARIOATIVO&filter[CGCCFO]=$cpf";
+//        $URL .= "?expand=SALDOCARTAOALIMENTACAO,FUNCIONARIOATIVO&filter[CGCCFO]=$cpf";
+        $URL .= "?filter[CGCCFO]=$cpf";
 
         return $this->curlIntegrator($URL);
     }
@@ -79,11 +80,8 @@ class IntegratorRmClienteFornecedorManagement implements IntegratorRmClienteForn
         $this->curl->setOption(CURLOPT_TIMEOUT, 60);
         $this->curl->setOption(CURLOPT_RETURNTRANSFER, true);
         $this->curl->setOption(CURLOPT_CUSTOMREQUEST, 'GET');
-
-        //get request with url
         $this->curl->get($URL);
 
-        //read response
         $response = $this->curl->getBody();
         $resp = \Safe\json_decode($response, true);
         return $resp['items'];
