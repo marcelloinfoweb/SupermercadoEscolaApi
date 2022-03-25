@@ -31,4 +31,8 @@
 
     <preference for="Funarbe\SupermercadoEscolaApi\Api\VerificaProdutoSemImagemManagementInterface"
                 type="Funarbe\SupermercadoEscolaApi\Model\VerificaProdutoSemImagemManagement"/>
+
+    <preference for="Funarbe\SupermercadoEscolaApi\Api\InformacoesExpedicaoManagementInterface"
+                type="Funarbe\SupermercadoEscolaApi\Model\InformacoesExpedicaoManagement"/>
+
 </config>

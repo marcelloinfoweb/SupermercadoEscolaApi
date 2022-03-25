@@ -3,6 +3,6 @@
         xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
     <module name="Funarbe_SupermercadoEscolaApi"/>
     <sequence>
-        <module name="Magento_Webapi" />
+        <module name="Magento_Webapi"/>
     </sequence>
 </config>
