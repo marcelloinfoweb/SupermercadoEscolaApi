@@ -117,9 +117,17 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
             $this->excluirItemCompra->getExcluirItemCompra($order_id, $itemId, $quantidade);
         }
 
+        $regularPrice = $product->getPriceInfo()->getPrice('regular_price')->getValue();
+        $specialPrice = $product->getPriceInfo()->getPrice('special_price')->getValue();
+
+        if ($specialPrice) {
+            $preco = $specialPrice;
+        } else {
+            $preco = $regularPrice;
+        }
+
         $quantidade += $qty;
-        $price = $product->getPrice();
-        $priceQty = $price * $quantidade;
+        $priceQty = $preco * $quantidade;
         $comment = 'Produto adicionado: ';
 
         $discount = 0.00;
@@ -134,7 +142,7 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
             $quoteItem = $this->cartItemFactory->create();
             $quoteItem->setProduct($product)
                 ->setQty($quantidade)
-                ->setCustomPrice($price)
+                ->setCustomPrice($preco)
                 ->getProduct()->setIsSuperMode(true);
 
             $quote->addItem($quoteItem);
@@ -152,12 +160,12 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
                 ->setName($product->getName())
                 ->setSku($product->getSku())
                 ->setQtyOrdered($quantidade)
-                ->setPrice($product->getPrice())
-                ->setBasePrice($product->getPrice())
-                ->setOriginalPrice($product->getPrice())
-                ->setBaseOriginalPrice($product->getPrice())
-                ->setRowTotal($product->getPrice() * $quantidade)
-                ->setBaseRowTotal($product->getPrice() * $quantidade)
+                ->setPrice($price)
+                ->setBasePrice($price)
+                ->setOriginalPrice($price)
+                ->setBaseOriginalPrice($price)
+                ->setRowTotal($price * $quantidade)
+                ->setBaseRowTotal($price * $quantidade)
                 ->setProductOptions(['info_buyRequest' => $requestInfo]);
 
             $order->addItem($orderItem);
