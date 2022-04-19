@@ -53,7 +53,7 @@ class ExcluirItemCompraManagement implements ExcluirItemCompraManagementInterfac
                 $item_price = $item->getRowTotal();
 
                 $discount = 0.00;
-                $comment = '&#935; Excluído: id ' . $item->getId() . '<br/>' . $item->getName() .
+                $comment = 'Excluído: id ' . $item->getId() .' '.  $item->getName() .'<br/>' .
                     ' R$' . number_format($item_price, 2, ",", ".") .
                     ' Qtd: ' . $item->getQtyOrdered();
 

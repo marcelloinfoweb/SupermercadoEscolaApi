@@ -135,8 +135,8 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
 
         $quantidade += $qty;
         $priceQty = $preco * $quantidade;
-        $comment = '&#10003; Adicionado: id ' . $product->getId() . '<br/>' .
-            $product->getName() . ' R$' . number_format($priceQty, 2, ",", ".") .
+        $comment = 'Adicionado: id ' . $product->getId() . ' ' . $product->getName() . '<br/>' .
+            ' R$' . number_format($priceQty, 2, ",", ".") .
             ' Qtd adicionada ' . abs($qty - $quantidade) . ' total: ' . $quantidade;
 
         $discount = 0.00;
@@ -198,3 +198,4 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
         return true;
     }
 }
+
