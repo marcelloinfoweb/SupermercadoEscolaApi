@@ -59,6 +59,18 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
      */
     private ResourceConnection $resource;
 
+    /**
+     * @param \Funarbe\SupermercadoEscolaApi\Model\ExcluirItemCompraManagement $excluirItemCompra
+     * @param \Magento\Framework\App\ResourceConnection $resource
+     * @param \Magento\Sales\Api\OrderRepositoryInterface $orderRepository
+     * @param \Magento\Catalog\Api\ProductRepositoryInterface $productRepository
+     * @param \Magento\Quote\Api\Data\CartItemInterfaceFactory $cartItemFactory
+     * @param \Magento\Quote\Api\CartRepositoryInterface $quoteRepository
+     * @param \Magento\Sales\Model\Order\ItemFactory $orderItemFactory
+     * @param \Magento\Framework\App\Request\Http $request
+     * @param \Magento\Framework\Message\ManagerInterface $messageManager
+     * @param \Funarbe\Helper\Helper\Data $data
+     */
     public function __construct(
         \Funarbe\SupermercadoEscolaApi\Model\ExcluirItemCompraManagement $excluirItemCompra,
         \Magento\Framework\App\ResourceConnection $resource,
@@ -86,20 +98,14 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
     /**
      * @param int $order_id
      * @param float $quantidade
-     * @param float $price
      * @param int $sku
      * @param int $itemId
      * @return \Magento\Framework\Message\ManagerInterface|bool
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      * @throws \Exception
      */
-    public function getAdicionarItemCompra(
-        int $order_id,
-        float $quantidade,
-        float $price,
-        int $sku,
-        int $itemId
-    ) {
+    public function getAdicionarItemCompra(int $order_id, float $quantidade, int $sku, int $itemId)
+    {
         $order = $this->orderRepository->get($order_id);
         $product = $this->productRepository->get($sku);
         $quote = $this->quoteRepository->get($order->getQuoteId());
@@ -111,7 +117,7 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
 
         $qty = 0;
         if (count($results) >= 1) {
-            foreach ($results as $num => $values) {
+            foreach ($results as $key => $values) {
                 $qty += $values['qty_ordered'];
             }
             $this->excluirItemCompra->getExcluirItemCompra($order_id, $itemId, $quantidade);
@@ -125,10 +131,13 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
         } else {
             $preco = $regularPrice;
         }
+        $preco_original = $regularPrice;
 
         $quantidade += $qty;
         $priceQty = $preco * $quantidade;
-        $comment = 'Produto adicionado: ';
+        $comment = '&#10003; Adicionado: id ' . $product->getId() . '<br/>' .
+            $product->getName() . ' R$' . number_format($priceQty, 2, ",", ".") .
+            ' Qtd adicionada ' . abs($qty - $quantidade) . ' total: ' . $quantidade;
 
         $discount = 0.00;
         if ($colaborador === '1') {
@@ -160,12 +169,12 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
                 ->setName($product->getName())
                 ->setSku($product->getSku())
                 ->setQtyOrdered($quantidade)
-                ->setPrice($price)
-                ->setBasePrice($price)
-                ->setOriginalPrice($price)
-                ->setBaseOriginalPrice($price)
-                ->setRowTotal($price * $quantidade)
-                ->setBaseRowTotal($price * $quantidade)
+                ->setPrice($preco)
+                ->setBasePrice($preco)
+                ->setOriginalPrice($preco_original)
+                ->setBaseOriginalPrice($preco_original)
+                ->setRowTotal($preco * $quantidade)
+                ->setBaseRowTotal($preco * $quantidade)
                 ->setProductOptions(['info_buyRequest' => $requestInfo]);
 
             $order->addItem($orderItem);
@@ -180,8 +189,7 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
             $order->setTotalQtyOrdered($order->getTotalQtyOrdered() + $quantidade);
             $order->setDiscountAmount('-' . (abs($order->getDiscountAmount()) + $discount));
             $order->setBaseDiscountAmount('-' . (abs($order->getDiscountAmount()) + $discount));
-            $order->addStatusHistoryComment($comment . 'id ' . $product->getId() . ' - '
-                . $product->getName(), false)->setIsCustomerNotified(false);
+            $order->addCommentToStatusHistory($comment, false)->setIsCustomerNotified(false);
             $this->orderRepository->save($order);
             /* Update relevant order totals End */
         } catch (Exception $e) {
@@ -190,4 +198,3 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
         return true;
     }
 }
-

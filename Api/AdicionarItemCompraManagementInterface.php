@@ -9,7 +9,6 @@ interface AdicionarItemCompraManagementInterface
     /**
      * @param int $order_id
      * @param float $quantidade
-     * @param float $price
      * @param int $sku
      * @param int $itemId
      * @return mixed
@@ -17,7 +16,6 @@ interface AdicionarItemCompraManagementInterface
     public function getAdicionarItemCompra(
         int $order_id,
         float $quantidade,
-        float $price,
         int $sku,
         int $itemId
     );
