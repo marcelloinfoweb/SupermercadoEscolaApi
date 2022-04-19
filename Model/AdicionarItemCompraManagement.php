@@ -198,3 +198,4 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
         return true;
     }
 }
+
