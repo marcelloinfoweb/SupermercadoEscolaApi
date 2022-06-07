@@ -112,13 +112,20 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
         $colaborador = $this->helper->getColaborador($order->getCustomerId());
         $connection = $this->resource->getConnection(ResourceConnection::DEFAULT_CONNECTION);
 
-        $query = "SELECT qty_ordered, price FROM sales_order_item WHERE order_id = $order_id AND product_id = $itemId";
+        $query = "SELECT qty_ordered, price, is_qty_decimal FROM sales_order_item WHERE order_id = $order_id AND product_id = $itemId";
         $results = $connection->fetchAll($query);
 
         $qty = 0;
+        $isDecimal = 0;
         if (count($results) >= 1) {
             foreach ($results as $key => $values) {
                 $qty += $values['qty_ordered'];
+                $isDecimalVar = $this->isDecimal($values['is_qty_decimal']);
+                if ($isDecimalVar === true) {
+                    $isDecimal = 1;
+                } else {
+                    $isDecimal = $values['is_qty_decimal'];
+                }
             }
             $this->excluirItemCompra->getExcluirItemCompra($order_id, $itemId, $quantidade);
         }
@@ -175,7 +182,8 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
                 ->setBaseOriginalPrice($preco_original)
                 ->setRowTotal($preco * $quantidade)
                 ->setBaseRowTotal($preco * $quantidade)
-                ->setProductOptions(['info_buyRequest' => $requestInfo]);
+                ->setProductOptions(['info_buyRequest' => $requestInfo])
+                ->setIsQtyDecimal($isDecimal);
 
             $order->addItem($orderItem);
             /* Add Order Item End */
@@ -197,5 +205,13 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
         }
         return true;
     }
-}
 
+    /**
+     * @param $val
+     * @return bool
+     */
+    function isDecimal($val): bool
+    {
+        return is_numeric($val) && floor($val) !== $val;
+    }
+}
