@@ -210,7 +210,7 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
      * @param $val
      * @return bool
      */
-    function isDecimal($val): bool
+    public function isDecimal($val): bool
     {
         return is_numeric($val) && floor($val) !== $val;
     }
