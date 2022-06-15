@@ -48,36 +48,30 @@ class SeparacaoProdutosManagement implements SeparacaoProdutosManagementInterfac
                         JSON_EXTRACT(V.product_options, '$.options[1].value') AS opcoes_carne,
                         SO.caso_produto_nao_encontrado,
                         SO.delivery_timeslot,
-                        SO.delivery_date
-                    FROM
-                        sales_order_item V
-                    INNER JOIN
-                        catalog_category_product PC
-                            ON V.product_id = PC.product_id
-                    INNER JOIN
-                        catalog_category_entity_varchar C
-                            ON C.entity_id = PC.category_id
-                    INNER JOIN
-                        catalog_product_entity_varchar P
-                            ON P.entity_id = PC.product_id
-                            AND P.attribute_id = 73
-                            AND P.store_id = 0
-                    INNER JOIN
-                        catalog_product_entity_varchar P2
-                            ON P2.entity_id = PC.product_id
-                            AND P2.attribute_id = 237
-                            AND P2.store_id = 0
-                    INNER JOIN
-                        catalog_product_entity_int CPEI
-                            ON P.entity_id = CPEI.entity_id
-                    INNER JOIN
-                        sales_order SO
-                            ON SO.entity_id = $order_Id
-                    INNER JOIN
-                        sales_order_address SOA
-                            ON SOA.parent_id = SO.entity_id
-                    WHERE
-                        PC.position = 0
+                        SO.delivery_date,
+                        SOP.method
+                    FROM sales_order_item V
+                    INNER JOIN catalog_category_product PC
+                        ON V.product_id = PC.product_id
+                    INNER JOIN catalog_category_entity_varchar C
+                        ON C.entity_id = PC.category_id
+                    INNER JOIN catalog_product_entity_varchar P
+                        ON P.entity_id = PC.product_id
+                        AND P.attribute_id = 73
+                        AND P.store_id = 0
+                    INNER JOIN catalog_product_entity_varchar P2
+                        ON P2.entity_id = PC.product_id
+                        AND P2.attribute_id = 237
+                        AND P2.store_id = 0
+                    INNER JOIN catalog_product_entity_int CPEI
+                        ON P.entity_id = CPEI.entity_id
+                    INNER JOIN sales_order SO
+                        ON SO.entity_id = $order_Id
+                    INNER JOIN sales_order_address SOA
+                        ON SOA.parent_id = SO.entity_id
+                    INNER JOIN sales_order_payment SOP
+                        ON SOP.entity_id = SO.entity_id
+                    WHERE PC.position = 0
                         AND C.attribute_id = (
                             SELECT
                                 eav_attribute.attribute_id
