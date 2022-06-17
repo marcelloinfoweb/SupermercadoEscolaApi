@@ -49,7 +49,8 @@ class SeparacaoProdutosManagement implements SeparacaoProdutosManagementInterfac
                         SO.caso_produto_nao_encontrado,
                         SO.delivery_timeslot,
                         SO.delivery_date,
-                        SOP.method
+                        SOP.method,
+                        SOP.amount_ordered
                     FROM sales_order_item V
                     INNER JOIN catalog_category_product PC
                         ON V.product_id = PC.product_id
