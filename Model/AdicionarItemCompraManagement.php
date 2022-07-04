@@ -183,7 +183,7 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
                 ->setRowTotal($preco * $quantidade)
                 ->setBaseRowTotal($preco * $quantidade)
                 ->setProductOptions(['info_buyRequest' => $requestInfo])
-                ->setIsQtyDecimal(1);
+                ->setIsQtyDecimal($isDecimal);
 
             $order->addItem($orderItem);
             /* Add Order Item End */
