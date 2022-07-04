@@ -182,6 +182,10 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
                 ->setBaseOriginalPrice($preco_original)
                 ->setRowTotal($preco * $quantidade)
                 ->setBaseRowTotal($preco * $quantidade)
+				->setPriceInclTax($preco * $quantidade)
+				->setBasePriceInclTax($preco * $quantidade)
+				->setRowTotalInclTax($preco * $quantidade)
+				->setBaseRowTotalInclTax($preco * $quantidade)
                 ->setProductOptions(['info_buyRequest' => $requestInfo])
                 ->setIsQtyDecimal($isDecimal);
 
@@ -191,6 +195,8 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
             /* Update relevant order totals Start */
             $order->setSubtotal($order->getSubtotal() + $priceQty);
             $order->setBaseSubtotal($order->getBaseSubtotal() + $priceQty);
+            $order->setSubtotalInclTax($order->getSubtotal() + $priceQty);
+            $order->setBaseSubtotalInclTax($order->getBaseSubtotal() + $priceQty);
             $order->setGrandTotal(($order->getGrandTotal() + $priceQty) - $discount);
             $order->setBaseGrandTotal(($order->getBaseGrandTotal() + $priceQty) - $discount);
             $order->setTotalItemCount($order->getTotalItemCount() + $quantidade);
