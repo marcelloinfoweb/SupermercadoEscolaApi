@@ -49,6 +49,7 @@ class SeparacaoProdutosManagement implements SeparacaoProdutosManagementInterfac
                         SO.caso_produto_nao_encontrado,
                         SO.delivery_timeslot,
                         SO.delivery_date,
+                        SO.delivery_comment,
                         SOP.method,
                         SOP.amount_ordered
                     FROM sales_order_item V
@@ -97,7 +98,8 @@ class SeparacaoProdutosManagement implements SeparacaoProdutosManagementInterfac
                         SO.caso_produto_nao_encontrado,
                         V.sku,
                         SO.delivery_timeslot,
-                        SO.delivery_date
+                        SO.delivery_date,
+                        SO.delivery_comment
                     ORDER BY
                         NULL";
 
