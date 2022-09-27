@@ -5,21 +5,31 @@ declare(strict_types=1);
 namespace Funarbe\SupermercadoEscolaApi\Model;
 
 use Funarbe\SupermercadoEscolaApi\Api\DetalhesProdutosManagementInterface;
-use Magento\Framework\Exception\NoSuchEntityException;
-
+use Magento\Catalog\Model\Product;
+use Magento\Catalog\Model\Product\Attribute\Source\Status;
+use Magento\Catalog\Model\ProductRepository;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\DB\Adapter\AdapterInterface;
+use Magento\Framework\Exception\NoSuchEntityException;
+use Psr\Log\LoggerInterface;
 
+/**
+ * @property \Magento\Catalog\Model\Product $_productCollection
+ * @property \Magento\Catalog\Model\ProductRepository $_productRepository
+ * @property \Psr\Log\LoggerInterface $logger
+ */
 class DetalhesProdutosManagement implements DetalhesProdutosManagementInterface
 {
-    protected \Magento\Catalog\Model\ProductRepository $_productRepository;
-
     public function __construct(
-        \Magento\Catalog\Model\ProductRepository $productRepository
+        ProductRepository $productRepository,
+        Product           $productCollection,
+        LoggerInterface   $logger
     )
     {
         $this->_productRepository = $productRepository;
+        $this->_productCollection = $productCollection;
+        $this->logger = $logger;
     }
 
     /**
@@ -83,11 +93,70 @@ class DetalhesProdutosManagement implements DetalhesProdutosManagementInterface
         return $connection->fetchAll($sql);
     }
 
+
+    /**
+     * @param int $sku
+     * @param string $state
+     * @return bool
+     * @throws NoSuchEntityException
+     */
+    public function venderProdutoNoEcommerce(int $sku, string $state): bool
+    {
+        $product = $this->_productRepository->get($sku, true, 0, true);
+
+        if (!$product->getSku()) {
+            return false;
+        }
+
+        $product_name = $product->getName();
+        // $product_status = $product->getStatus();
+        // $product_url_key = $product->getUrlKey();
+
+        return $this->updateUrlAndNameProduct($sku, $product_name, $state);
+    }
+
+    /**
+     * Atualiza o status, o nome e a url do produto
+     *
+     * @param $sku
+     * @param $product_name
+     * @param $state
+     * @return bool
+     */
+    public function updateUrlAndNameProduct($sku, $product_name, $state): bool
+    {
+        $product_name = trim(str_replace("INATIVO", "", $product_name));
+        $url = preg_replace('#[^0-9a-z]+#i', '-', $product_name);
+
+        if ($state === 'enable') {
+            $url = strtolower($url);
+        } else {
+            $url = strtolower($url . "-inativo");
+        }
+
+        try {
+            $product = $this->_productRepository->get($sku, true, 0, true);
+            if ($state === 'enable') {
+                $product->setStatus(Status::STATUS_ENABLED);
+                $product->setName($product_name);
+            } else {
+                $product->setStatus(Status::STATUS_DISABLED);
+                $product->setName($product_name . " INATIVO");
+            }
+            $product->setUrlKey($url);
+            $product->save($product);
+        } catch (\Exception $e) {
+            $this->logger->critical('catalog_product_entity_varchar: ' . $e->getMessage());
+            return false;
+        }
+
+        return true;
+    }
+
     public function connection(): AdapterInterface
     {
         $objectManager = ObjectManager::getInstance();
-        $resource = $objectManager->get(ResourceConnection::class);
-        return $resource->getConnection();
+        return $objectManager->get(ResourceConnection::class)->getConnection();
     }
 
 }

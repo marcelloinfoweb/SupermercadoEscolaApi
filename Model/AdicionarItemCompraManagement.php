@@ -107,6 +107,11 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
     public function getAdicionarItemCompra(int $order_id, float $quantidade, int $sku, int $itemId)
     {
         $order = $this->orderRepository->get($order_id);
+
+        $payment = $order->getPayment();
+        $method = $payment->getMethodInstance();
+        $methodCode = $method->getCode();
+
         $product = $this->productRepository->get($sku);
         $quote = $this->quoteRepository->get($order->getQuoteId());
         $colaborador = $this->helper->getColaborador($order->getCustomerId());
@@ -120,12 +125,12 @@ class AdicionarItemCompraManagement implements AdicionarItemCompraManagementInte
         if (count($results) >= 1) {
             foreach ($results as $key => $values) {
                 $qty += $values['qty_ordered'];
-                $isDecimalVar = $this->isDecimal($values['is_qty_decimal']);
-                if ($isDecimalVar === true) {
-                    $isDecimal = 1;
-                } else {
-                    $isDecimal = $values['is_qty_decimal'];
-                }
+//                $isDecimalVar = $this->isDecimal($values['is_qty_decimal']);
+//                if ($isDecimalVar === 1) {
+//                    $isDecimal = 1;
+//                } else {
+//                    $isDecimal = $values['is_qty_decimal'];
+//                }
             }
             $this->excluirItemCompra->getExcluirItemCompra($order_id, $itemId, $quantidade);
         }

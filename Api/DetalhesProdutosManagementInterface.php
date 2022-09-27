@@ -21,4 +21,11 @@ interface DetalhesProdutosManagementInterface
      * @return mixed
      */
     public function getProdutos();
+
+    /**
+     * @param int $sku
+     * @param string $state
+     * @return mixed
+     */
+    public function venderProdutoNoEcommerce(int $sku, string $state);
 }
