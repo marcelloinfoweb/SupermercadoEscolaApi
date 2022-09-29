@@ -93,40 +93,35 @@ class DetalhesProdutosManagement implements DetalhesProdutosManagementInterface
         return $connection->fetchAll($sql);
     }
 
-
     /**
      * @param int $sku
      * @param string $state
-     * @return bool
-     * @throws NoSuchEntityException
      */
-    public function venderProdutoNoEcommerce(int $sku, string $state): bool
+    public function venderProdutoNoEcommerce(int $sku, string $state)
     {
-        $product = $this->_productRepository->get($sku, true, 0, true);
+        $store_ids = [0,28];
+        try {
+            foreach ($store_ids as $store_id) {
+                $product = $this->_productRepository->get($sku, true, $store_id, true);
+                $product_name = $product->getName();
+                // $product_status = $product->getStatus();
+                // $product_url_key = $product->getUrlKey();
+                $this->updateUrlAndNameProduct($sku, $product_name, $state, $store_id);
+            }
 
-        if (!$product->getSku()) {
-            return false;
+        } catch (NoSuchEntityException $e) {
+            $product = false;
         }
-
-        $product_name = $product->getName();
-        // $product_status = $product->getStatus();
-        // $product_url_key = $product->getUrlKey();
-
-        return $this->updateUrlAndNameProduct($sku, $product_name, $state);
     }
 
     /**
      * Atualiza o status, o nome e a url do produto
-     *
-     * @param $sku
-     * @param $product_name
-     * @param $state
-     * @return bool
+     * @throws NoSuchEntityException
      */
-    public function updateUrlAndNameProduct($sku, $product_name, $state): bool
+    public function updateUrlAndNameProduct(int $sku, string $product_name, string $state, int $store_id): bool
     {
         $product_name = trim(str_replace("INATIVO", "", $product_name));
-        $url = preg_replace('#[^0-9a-z]+#i', '-', $product_name);
+        $url = preg_replace("#[^0-9a-z]+#i", "-", $product_name);
 
         if ($state === 'enable') {
             $url = strtolower($url);
@@ -134,22 +129,23 @@ class DetalhesProdutosManagement implements DetalhesProdutosManagementInterface
             $url = strtolower($url . "-inativo");
         }
 
+        $product = $this->_productRepository->get($sku, true, $store_id, true);
+
+        if ($state === 'enable') {
+            $product->setStatus(Status::STATUS_ENABLED);
+            $product->setName($product_name);
+        } else {
+            $product->setStatus(Status::STATUS_DISABLED);
+            $product->setName($product_name . " INATIVO");
+        }
+        $product->setUrlKey($url);
+
         try {
-            $product = $this->_productRepository->get($sku, true, 0, true);
-            if ($state === 'enable') {
-                $product->setStatus(Status::STATUS_ENABLED);
-                $product->setName($product_name);
-            } else {
-                $product->setStatus(Status::STATUS_DISABLED);
-                $product->setName($product_name . " INATIVO");
-            }
-            $product->setUrlKey($url);
             $product->save($product);
         } catch (\Exception $e) {
             $this->logger->critical('catalog_product_entity_varchar: ' . $e->getMessage());
             return false;
         }
-
         return true;
     }
 
