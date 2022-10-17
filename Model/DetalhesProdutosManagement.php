@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace Funarbe\SupermercadoEscolaApi\Model;
 
-use Funarbe\SupermercadoEscolaApi\Api\DetalhesProdutosManagementInterface;
+use Exception;
 use Magento\Catalog\Model\Product;
 use Magento\Catalog\Model\Product\Attribute\Source\Status;
 use Magento\Catalog\Model\ProductRepository;
+use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\DB\Adapter\AdapterInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Funarbe\SupermercadoEscolaApi\Api\DetalhesProdutosManagementInterface;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -21,14 +23,24 @@ use Psr\Log\LoggerInterface;
  */
 class DetalhesProdutosManagement implements DetalhesProdutosManagementInterface
 {
+    private CollectionFactory $_productCollectionFactory;
+
+    /**
+     * @param ProductRepository $productRepository
+     * @param Product $productCollection
+     * @param CollectionFactory $productCollectionFactory
+     * @param LoggerInterface $logger
+     */
     public function __construct(
         ProductRepository $productRepository,
         Product           $productCollection,
+        CollectionFactory $productCollectionFactory,
         LoggerInterface   $logger
     )
     {
         $this->_productRepository = $productRepository;
         $this->_productCollection = $productCollection;
+        $this->_productCollectionFactory = $productCollectionFactory;
         $this->logger = $logger;
     }
 
@@ -39,7 +51,7 @@ class DetalhesProdutosManagement implements DetalhesProdutosManagementInterface
      */
     public function getDetalhesProdutos($productId)
     {
-        $product = \Magento\Framework\App\ObjectManager::getInstance()
+        $product = ObjectManager::getInstance()
             ->get('Magento\Catalog\Model\Product')->load($productId);
 
 //        return $this->_productRepository->getById($productId);
@@ -99,54 +111,114 @@ class DetalhesProdutosManagement implements DetalhesProdutosManagementInterface
      */
     public function venderProdutoNoEcommerce(int $sku, string $state)
     {
-        $store_ids = [0,28];
-        try {
-            foreach ($store_ids as $store_id) {
-                $product = $this->_productRepository->get($sku, true, $store_id, true);
-                $product_name = $product->getName();
-                // $product_status = $product->getStatus();
-                // $product_url_key = $product->getUrlKey();
-                $this->updateUrlAndNameProduct($sku, $product_name, $state, $store_id);
-            }
+        $store_ids = [28, 0];
+        foreach ($store_ids as $store_id) {
 
-        } catch (NoSuchEntityException $e) {
-            $product = false;
+            try {
+                // Trás um produto especifico, do sku enviado.
+                $product = $this->_productRepository->get($sku, true, $store_id, true);
+
+                $product_id_alterar = $product->getId();
+                $product_name_alterar = $product->getName();
+                $product_status_alterar = $product->getStatus();
+
+                // Se o produto estiver desabilitato, se for para habilitar e o produto tenha a palavra Inativo
+                if ($product_status_alterar === '2' && $state === 'enable'
+                    && preg_match("~\bINATIVO\b~", $product_name_alterar) === 1) {
+
+                    // Trás todos os produtos com o mesmo nome no BD Magento
+                    $productEquals = $this->searchProductEquals($product_name_alterar, $product_id_alterar);
+                    if (!empty($productEquals)) {
+                        echo 'Existe produto com o mesmo nome.';
+                        echo PHP_EOL;
+                        continue;
+                    }
+                    $this->updateUrlAndNameProduct($sku, $product_name_alterar, $state, $store_id);
+                }
+
+                // Se for para desabilitar e o produto não tenha a palavra Inativo
+                if ($product_status_alterar === '1' && $state === 'disable' && preg_match("~\bINATIVO\b~", $product_name_alterar) === 0) {
+                    $this->updateUrlAndNameProduct($sku, $product_name_alterar, $state, $store_id);
+                }
+
+                echo 'Produto Sem Alteração.';
+                return;
+
+            } catch (\Exception $e) {
+                echo $e->getMessage();
+                return;
+            }
         }
     }
 
     /**
-     * Atualiza o status, o nome e a url do produto
-     * @throws NoSuchEntityException
+     *
+     * Product collection Data
+     * Se os skus forem iguais e o produto buscado não tiver INATIVO no nome, retorna true.
+     *
+     * @param $product_name_alterar
+     * @param $sku
+     * @param $store_id
+     * @return bool
      */
-    public function updateUrlAndNameProduct(int $sku, string $product_name, string $state, int $store_id): bool
+    public function getProductCollection($product_name_alterar, $sku, $store_id): bool
     {
-        $product_name = trim(str_replace("INATIVO", "", $product_name));
+        $collection = $this->_productCollectionFactory->create();
+        $collection->addAttributeToSelect('*');
+        $collection->addAttributeToFilter('name', ['like' => $product_name_alterar]);
+        $collection->addStoreFilter($store_id);
+        $datas = $collection->getData();
+
+        if (!empty($datas)) {
+            foreach ($datas as $value) {
+                if ($value['sku'] === (string)$sku && !stripos($value['name'], "INATIVO")) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Atualiza o status, o nome e a url do produto
+     */
+    public function updateUrlAndNameProduct(int $sku, string $product_name, string $state, int $store_id): void
+    {
+        $today = date("dmY-His");
+        $product_name = preg_replace('/ INATIVO.*/', '', $product_name);
         $url = preg_replace("#[^0-9a-z]+#i", "-", $product_name);
 
-        if ($state === 'enable') {
-            $url = strtolower($url);
-        } else {
-            $url = strtolower($url . "-inativo");
-        }
-
-        $product = $this->_productRepository->get($sku, true, $store_id, true);
-
-        if ($state === 'enable') {
-            $product->setStatus(Status::STATUS_ENABLED);
-            $product->setName($product_name);
-        } else {
-            $product->setStatus(Status::STATUS_DISABLED);
-            $product->setName($product_name . " INATIVO");
-        }
-        $product->setUrlKey($url);
-
         try {
-            $product->save($product);
-        } catch (\Exception $e) {
-            $this->logger->critical('catalog_product_entity_varchar: ' . $e->getMessage());
-            return false;
+            $product = $this->_productRepository->get($sku, true, $store_id, true);
+
+            if ($state === 'enable') {
+                $product->setUrlKey(strtolower($url));
+                $product->setName($product_name);
+                $product->setStatus(Status::STATUS_ENABLED);
+            } else {
+                $product->setUrlKey(strtolower($url . "-inativo-" . $today));
+                $product->setName($product_name . " INATIVO " . $today);
+                $product->setStatus(Status::STATUS_DISABLED);
+            }
+            $product->save();
+
+            return;
+        } catch (Exception $e) {
+            echo "updateUrlAndNameProduct: " . $e->getMessage() . " " . $url . PHP_EOL;
         }
-        return true;
+    }
+
+    /**
+     * @param $product_name_alterar
+     * @param $product_id_alterar
+     * @return array
+     */
+    public function searchProductEquals($product_name_alterar, $product_id_alterar): array
+    {
+        $product_name = preg_replace('/ INATIVO.*/', '', $product_name_alterar);
+        return $this->connection()
+            ->fetchAll("SELECT value_id, entity_id FROM catalog_product_entity_varchar
+                           WHERE value = '$product_name' AND entity_id <> $product_id_alterar AND attribute_id = 73");
     }
 
     public function connection(): AdapterInterface
