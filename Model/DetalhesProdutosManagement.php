@@ -33,11 +33,10 @@ class DetalhesProdutosManagement implements DetalhesProdutosManagementInterface
      */
     public function __construct(
         ProductRepository $productRepository,
-        Product           $productCollection,
+        Product $productCollection,
         CollectionFactory $productCollectionFactory,
-        LoggerInterface   $logger
-    )
-    {
+        LoggerInterface $logger
+    ) {
         $this->_productRepository = $productRepository;
         $this->_productCollection = $productCollection;
         $this->_productCollectionFactory = $productCollectionFactory;
@@ -105,40 +104,39 @@ class DetalhesProdutosManagement implements DetalhesProdutosManagementInterface
         return $connection->fetchAll($sql);
     }
 
-    /**
-     * @param int $sku
-     * @param string $state
-     */
     public function venderProdutoNoEcommerce(int $sku, string $state)
     {
-        $store_ids = [28, 0];
+        $store_ids = [0];
         foreach ($store_ids as $store_id) {
 
             try {
-                // Trás um produto especifico, do sku enviado.
+                // Traz um produto específico, do sku enviado.
                 $product = $this->_productRepository->get($sku, true, $store_id, true);
 
                 $product_id_alterar = $product->getId();
                 $product_name_alterar = $product->getName();
                 $product_status_alterar = $product->getStatus();
 
-                // Se o produto estiver desabilitato, se for para habilitar e o produto tenha a palavra Inativo
-                if ($product_status_alterar === '2' && $state === 'enable'
-                    && preg_match("~\bINATIVO\b~", $product_name_alterar) === 1) {
-
-                    // Trás todos os produtos com o mesmo nome no BD Magento
-                    $productEquals = $this->searchProductEquals($product_name_alterar, $product_id_alterar);
-                    if (!empty($productEquals)) {
-                        echo 'Existe produto com o mesmo nome.';
-                        echo PHP_EOL;
-                        continue;
+                // Se o produto estiver desabilitado, se for para habilitar e o produto tenha a palavra Inativo
+                if ($product_status_alterar === '2' && $state === 'enable') {
+                    if (preg_match("~\bINATIVO\b~", $product_name_alterar) === 1) {
+                        // Trás todos os produtos com o mesmo nome no BD Magento
+                        $productEquals = $this->searchProductEquals($product_name_alterar, $product_id_alterar);
+                        if (!empty($productEquals)) {
+                            echo 'Existe produto com o mesmo nome.';
+                            echo PHP_EOL;
+                            continue;
+                        }
                     }
+
                     $this->updateUrlAndNameProduct($sku, $product_name_alterar, $state, $store_id);
+                    return;
                 }
 
                 // Se for para desabilitar e o produto não tenha a palavra Inativo
                 if ($product_status_alterar === '1' && $state === 'disable' && preg_match("~\bINATIVO\b~", $product_name_alterar) === 0) {
                     $this->updateUrlAndNameProduct($sku, $product_name_alterar, $state, $store_id);
+                    return;
                 }
 
                 echo 'Produto Sem Alteração.';
@@ -184,21 +182,26 @@ class DetalhesProdutosManagement implements DetalhesProdutosManagementInterface
      */
     public function updateUrlAndNameProduct(int $sku, string $product_name, string $state, int $store_id): void
     {
+        if (mb_strpos($product_name, 'INATIVO') !== false) {
+            $product_name = preg_replace('/ INATIVO.*/', '', $product_name);
+        }
+
         $today = date("dmY-His");
-        $product_name = preg_replace('/ INATIVO.*/', '', $product_name);
         $url = preg_replace("#[^0-9a-z]+#i", "-", $product_name);
 
         try {
             $product = $this->_productRepository->get($sku, true, $store_id, true);
 
             if ($state === 'enable') {
-                $product->setUrlKey(strtolower($url));
+                $product->setUrlKey(mb_strtolower($url));
                 $product->setName($product_name);
                 $product->setStatus(Status::STATUS_ENABLED);
+                echo 'Produto habilitado: ' . $product_name . ' ' . $sku;
             } else {
-                $product->setUrlKey(strtolower($url . "-inativo-" . $today));
+                $product->setUrlKey(mb_strtolower($url . "-inativo-" . $today));
                 $product->setName($product_name . " INATIVO " . $today);
                 $product->setStatus(Status::STATUS_DISABLED);
+                echo 'Produto desabilitado: ' . $product_name . ' ' . $sku;
             }
             $product->save();
 
@@ -216,9 +219,10 @@ class DetalhesProdutosManagement implements DetalhesProdutosManagementInterface
     public function searchProductEquals($product_name_alterar, $product_id_alterar): array
     {
         $product_name = preg_replace('/ INATIVO.*/', '', $product_name_alterar);
+
         return $this->connection()
             ->fetchAll("SELECT value_id, entity_id FROM catalog_product_entity_varchar
-                           WHERE value = '$product_name' AND entity_id <> $product_id_alterar AND attribute_id = 73");
+                       WHERE value = '$product_name' AND entity_id <> $product_id_alterar AND attribute_id = 73");
     }
 
     public function connection(): AdapterInterface
